@@ -27,6 +27,8 @@
 
         /* Diagram Animations & Styles */
         .diag-wire { fill: none; stroke-width: 2; transition: all 0.2s ease; }
+        /* Digital clock and enable signals switch immediately, without visual lag. */
+        #wire-btn0, #wire-sysclk, #wire-enable-tap, [id^="wire-clk-tap-"] { transition: none; }
         .wire-idle { stroke: #334155; }
         .wire-blue { stroke: #3b82f6 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #3b82f6); }
         .wire-orange { stroke: #f97316 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #f97316); }
@@ -124,7 +126,7 @@
                         <div class="flex flex-col gap-2 text-xs font-mono text-slate-300">
                             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-sm"></div> SW Data (I0)</div>
                             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-orange-500 rounded-sm"></div> PIPO Data (I1)</div>
-                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-cyan-400 rounded-sm"></div> BTN0 (Clock/En)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-cyan-400 rounded-sm"></div> BTN0 (Clock/Enable)</div>
                             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-purple-400 rounded-sm"></div> BTN1 (Mux Sel)</div>
                             <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-400 rounded-sm"></div> MUX Out to LEDs</div>
                         </div>
@@ -305,7 +307,7 @@
                 content += `<text id="pipo-val-${i}" x="${x}" y="170" text-anchor="middle" class="ff-val">0</text>`;
                 
                 // Clock tap
-                content += `<path id="wire-clk-tap-${i}" d="M ${x-15} 240 L ${x-15} 170" class="diag-wire wire-idle"/>`;
+                content += `<path id="wire-clk-tap-${i}" d="M ${x-15} 260 L ${x-15} 170" class="diag-wire wire-idle"/>`;
                 content += `<polygon points="${x-20},170 ${x-10},170 ${x-15},165" fill="#475569"/>`;
 
                 // PIPO Output Data
@@ -316,6 +318,9 @@
             content += '<path id="wire-btn0" d="M 80 240 L 470 240" class="diag-wire wire-idle"/>';
             content += `<text id="svg-btn0-label" x="80" y="235" text-anchor="middle" class="ff-text font-bold" fill="#22d3ee">BTN0 Clock</text>`;
             
+            // Mode 2 clock-enable input, distinct from the clock pin.
+            content += '<path id="wire-enable-tap" d="M 470 240 L 485 240 L 485 200" class="diag-wire wire-idle opacity-0"/>';
+
             // --- System Clock Line (for Mode 2) ---
             content += '<path id="wire-sysclk" d="M 80 260 L 470 260" class="diag-wire wire-idle opacity-0 transition-opacity duration-300"/>';
             content += `<text id="svg-sysclk-label" x="80" y="255" text-anchor="middle" class="ff-text font-bold opacity-0 transition-opacity duration-300" fill="#4ade80">System CLK</text>`;
@@ -395,44 +400,49 @@
             }
         }
 
-        function flashClockLines() {
-            let oldVal = pipoVal;
-            pipoVal = swVal; // Capture Data
-            
-            // Flash Wires
-            let wireBtn0 = document.getElementById('wire-btn0');
-            wireBtn0.classList.remove('wire-idle');
-            wireBtn0.classList.add('wire-cyan');
-            
-            for(let i=0; i<=7; i++) {
-                let tap = document.getElementById(`wire-clk-tap-${i}`);
-                tap.classList.remove('wire-idle');
-                tap.classList.add('wire-cyan');
+        // Clock and enable wires display logic levels, never short pulse animations.
+        function updateClockSignals() {
+            const enTap = document.getElementById('wire-enable-tap');
+            enTap.setAttribute('class', `diag-wire ${btn0Down ? 'wire-cyan' : 'wire-idle'}${mode === 'btn_clock' ? ' opacity-0' : ''}`);
+            const btnWire = document.getElementById('wire-btn0');
+            btnWire.setAttribute('class', `diag-wire ${btn0Down ? 'wire-cyan' : 'wire-idle'}`);
 
-                let box = document.getElementById(`pipo-box-${i}`);
-                box.classList.remove('box-idle');
-                box.classList.add('ff-box', 'clocked');
-                
-                let valEl = document.getElementById(`pipo-val-${i}`);
-                let oldBit = (oldVal >> i) & 1;
-                let newBit = (pipoVal >> i) & 1;
-                valEl.textContent = newBit;
-                if(oldBit !== newBit) {
+            const sysWire = document.getElementById('wire-sysclk');
+            sysWire.setAttribute('class', `diag-wire ${sysClkState ? 'wire-green' : 'wire-idle'}${mode === 'btn_clock' ? ' opacity-0' : ''}`);
+
+            // The register clock pins display the actual selected clock level.
+            const clockIsHigh = mode === 'clk_enable' ? sysClkState === 1 : btn0Down;
+            const clockColor = mode === 'clk_enable' ? 'wire-green' : 'wire-cyan';
+            for (let i = 0; i < 8; i++) {
+                document.getElementById(`wire-clk-tap-${i}`)
+                    .setAttribute('class', `diag-wire ${clockIsHigh ? clockColor : 'wire-idle'}`);
+            }
+            const ind = document.getElementById('clk-indicator');
+            ind.style.backgroundColor = sysClkState ? '#4ade80' : '#475569';
+            ind.style.boxShadow = sysClkState ? '0 0 8px #4ade80' : 'none';
+        }
+
+        // This is a capture event, not a clock waveform. Blue highlights indicate
+        // that the flip-flops sampled their inputs on a rising clock edge.
+        function captureRegister() {
+            const oldVal = pipoVal;
+            pipoVal = swVal;
+            for (let i = 0; i < 8; i++) {
+                const box = document.getElementById(`pipo-box-${i}`);
+                box.classList.add('clocked');
+                const valEl = document.getElementById(`pipo-val-${i}`);
+                valEl.textContent = (pipoVal >> i) & 1;
+                if (((oldVal >> i) & 1) !== ((pipoVal >> i) & 1)) {
                     valEl.classList.add('changed');
-                    setTimeout(() => valEl.classList.remove('changed'), 200);
+                    setTimeout(() => valEl.classList.remove('changed'), 180);
                 }
             }
-
-            setTimeout(() => {
-                wireBtn0.classList.remove('wire-cyan');
-                wireBtn0.classList.add('wire-idle');
-                for(let i=0; i<=7; i++) {
-                    document.getElementById(`wire-clk-tap-${i}`).classList.remove('wire-cyan');
-                    document.getElementById(`wire-clk-tap-${i}`).classList.add('wire-idle');
+            clearTimeout(captureRegister.highlightTimeout);
+            captureRegister.highlightTimeout = setTimeout(() => {
+                for (let i = 0; i < 8; i++) {
                     document.getElementById(`pipo-box-${i}`).classList.remove('clocked');
                 }
-            }, 150);
-
+            }, 140);
             updateCombinational();
         }
 
@@ -454,10 +464,9 @@
             if(idx === 0 && !btn0Down) {
                 btn0Down = true;
                 document.getElementById(`btn0`).classList.add('btn-pressed');
-                document.getElementById('wire-btn0').classList.replace('wire-idle', 'wire-cyan');
-                
+                updateClockSignals();
                 if (mode === 'btn_clock') {
-                    flashClockLines(); // Direct posedge
+                    captureRegister(); // BTN0 rising edge clocks Mode 1
                 }
             }
             if(idx === 1 && !btn1Down) {
@@ -472,7 +481,7 @@
             if(idx === 0) {
                 btn0Down = false;
                 document.getElementById(`btn0`).classList.remove('btn-pressed');
-                document.getElementById('wire-btn0').classList.replace('wire-cyan', 'wire-idle');
+                updateClockSignals();
             }
             if(idx === 1) {
                 btn1Down = false;
@@ -482,23 +491,14 @@
             }
         }
 
-        // For Mode 2: System clock loop
+        // One clock state drives both the green indicator and the green wire.
+        // The register captures only on a LOW-to-HIGH transition with enable asserted.
         function tickSystemClock() {
-            sysClkState = 1 - sysClkState;
-            let ind = document.getElementById('clk-indicator');
-            ind.style.backgroundColor = sysClkState ? '#4ade80' : '#475569';
-            ind.style.boxShadow = sysClkState ? '0 0 8px #4ade80' : 'none';
-            
-            // Flash visual sysclk wire
-            if (mode === 'clk_enable') {
-                let wc = document.getElementById('wire-sysclk');
-                wc.classList.replace('wire-idle', 'wire-green');
-                setTimeout(() => wc.classList.replace('wire-green', 'wire-idle'), 50);
-            }
-
-            // If it's a rising edge (sysClkState == 1) and Enable (BTN0) is high
-            if(sysClkState === 1 && btn0Down && mode === 'clk_enable') {
-                flashClockLines();
+            const wasLow = sysClkState === 0;
+            sysClkState = wasLow ? 1 : 0;
+            updateClockSignals();
+            if (mode === 'clk_enable' && wasLow && btn0Down) {
+                captureRegister();
             }
         }
 
@@ -527,7 +527,6 @@
     stored_data <= sw;
 <span class="text-blue-400">end</span>`;
                 
-                sysWire.classList.add('opacity-0');
                 sysLabel.classList.add('opacity-0');
             } else {
                 document.getElementById('svg-reg-logic').innerText = "always @(posedge clk)";
@@ -535,18 +534,19 @@
                 document.getElementById('phys-btn0-label').innerText = "Enable";
                 
                 document.getElementById('desc-title').innerText = "Implementation 2: Proper Clock with Enable";
-                document.getElementById('desc-text').innerHTML = "In this design, the FPGA's 100MHz clock drives the register: <code>always @(posedge clk)</code>. BTN0 acts as a clock enable. While BTN0 is held down, the register continuously loads the switch states on every clock cycle, effectively becoming 'transparent'.";
+                document.getElementById('desc-text').innerHTML = "In this design, the FPGA's 100MHz clock drives the register: <code>always @(posedge clk)</code>. BTN0 acts as a clock enable. While BTN0 is held down, the register captures switch states only at rising clock edges while BTN0 is held. It is not a transparent latch.";
                 document.getElementById('code-snippet').innerHTML = `<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> clk) <span class="text-blue-400">begin</span>
     <span class="text-blue-400">if</span> (btn[0]) <span class="text-blue-400">begin</span>
         stored_data <= sw;
     <span class="text-blue-400">end</span>
 <span class="text-blue-400">end</span>`;
 
-                sysWire.classList.remove('opacity-0');
                 sysLabel.classList.remove('opacity-0');
             }
             
             pipoVal = 0x00;
+            for (let i = 0; i < 8; i++) document.getElementById(`pipo-val-${i}`).textContent = "0";
+            updateClockSignals();
             updateCombinational();
         }
 
