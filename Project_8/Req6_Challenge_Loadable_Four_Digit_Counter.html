@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0f172a"><title>Project 8 · Challenge 1 · Loadable Four-Digit Counter</title>
+<style>
+:root{color-scheme:dark;--bg:#0f172a;--panel:#1e293b;--deep:#0a0f1c;--line:#334155;--blue:#60a5fa;--cyan:#22d3ee;--green:#4ade80;--muted:#94a3b8;--text:#f8fafc}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}a{color:inherit;text-decoration:none}.mono,code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}main{max-width:1250px;margin:auto;padding:18px 20px 60px}header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:15px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px}.kicker{font:700 11px/1.4 ui-monospace,monospace;color:var(--cyan);letter-spacing:.16em}.heading{font-size:clamp(23px,3.2vw,38px);line-height:1.15;margin:8px 0 9px;color:#60a5fa}.sub{color:var(--muted);margin:0}.back,.action{border:1px solid #475569;background:#334155;color:white;border-radius:7px;padding:10px 14px;font-size:13px;font-weight:750;white-space:nowrap}.back:hover,.action:hover{background:#475569}.primary{background:#2563eb;border-color:#3b82f6}.primary:hover{background:#1d4ed8}.layout{display:grid;gap:20px}.panel{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px #0002}.pad{padding:22px}.panel-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 20px;border-bottom:1px solid #334155;padding-bottom:12px;font:750 12px ui-monospace,monospace;letter-spacing:.1em;color:#cbd5e1}.status{display:inline-flex;align-items:center;gap:8px;color:var(--green);font-size:11px}.dot{width:9px;height:9px;border-radius:100%;background:var(--green);box-shadow:0 0 8px #4ade80}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:0}.metric label{font:700 10px ui-monospace,monospace;color:var(--muted);display:block}.metric b{font:750 clamp(13px,1.6vw,19px) ui-monospace,monospace;color:#67e8f9;overflow-wrap:anywhere}.logic{background:var(--deep);border:1px solid #334155;border-radius:9px;padding:20px 16px;min-width:0}.stages{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center}.stage{background:#17293e;border:2px solid #3b82f6;border-radius:8px;padding:12px 10px;min-width:100px;max-width:190px;text-align:center;font:750 12px/1.35 ui-monospace,monospace;color:#e2e8f0;flex:1 1 110px;overflow-wrap:anywhere}.stage:nth-of-type(4n){border-color:#22d3ee}.stage:last-of-type{border-color:#4ade80}.arrow{font-size:22px;color:#22d3ee;flex:0 0 auto}.notes{margin:18px 0 0;padding-left:20px;color:#cbd5e1;font-size:13px}.notes li{margin:6px 0}.controlbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:15px}.pill{border:1px solid #475569;background:#0f172a;border-radius:8px;padding:9px 12px;color:#e2e8f0;font:700 12px ui-monospace,monospace}.pill.active{border-color:#22d3ee;background:#083344;color:#67e8f9}.smallselect{background:#0f172a;color:#e2e8f0;border:1px solid #475569;border-radius:7px;padding:9px}.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px}.board{background:#0b1322;border:1px solid #3b4d66;border-radius:12px;padding:18px;min-width:0}.boardheader{display:flex;justify-content:space-between;gap:10px;align-items:center;font:700 12px ui-monospace,monospace;color:#64748b;border-bottom:1px solid #334155;padding-bottom:12px}.ledrow{display:flex;justify-content:center;gap:clamp(6px,2vw,20px);margin:24px auto;flex-wrap:wrap}.light{width:19px;height:19px;border-radius:50%;display:block;margin:auto auto 7px;background:#064e3b;border:2px solid #14532d}.light.lit{background:#4ade80;border-color:#86efac;box-shadow:0 0 13px #22c55e}.bitcaption{font:700 10px ui-monospace,monospace;color:#94a3b8}.display{display:flex;justify-content:center;gap:4px;padding:18px 0 6px}.digit{width:min(18%,68px);height:auto;aspect-ratio:64/100;overflow:visible}.seg{fill:#123445;opacity:.42}.seg.on{fill:#4ade80;opacity:1;filter:drop-shadow(0 0 3px #4ade80)}.switches{display:flex;justify-content:center;gap:clamp(5px,1.5vw,15px);flex-wrap:wrap;margin-top:18px}.switch{width:clamp(34px,4.4vw,47px);height:75px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;color:var(--muted);border:0;padding:0;font:700 11px ui-monospace,monospace}.track{width:26px;height:48px;background:#0f172a;border:2px solid #475569;border-radius:5px;padding:2px;display:flex;align-items:flex-end}.thumb{width:18px;height:19px;background:#64748b;border-radius:2px}.switch.on .track{align-items:flex-start;border-color:#22c55e}.switch.on .thumb{background:#4ade80;box-shadow:0 0 7px #22c55e}.readouts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0 0}.readout{font:700 11px ui-monospace,monospace;border:1px solid var(--line);color:#67e8f9;padding:7px 9px;border-radius:6px}.tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #334155;margin:0 0 15px}.tab{padding:10px 13px;background:transparent;border:0;border-bottom:2px solid transparent;color:#94a3b8;font-weight:750}.tab[aria-selected="true"]{color:#60a5fa;border-color:#60a5fa}.tabpane[hidden]{display:none}.codehead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.codewrap{max-height:500px;overflow:auto;border:1px solid #334155;border-radius:8px;background:#090f1c}.codewrap pre{font:12px/1.55 ui-monospace,Consolas,monospace;padding:17px;margin:0;white-space:pre;tab-size:4;color:#e2e8f0}.timeline{display:grid;gap:8px}.timeline-row{display:grid;grid-template-columns:155px minmax(0,1fr);gap:9px;align-items:center;font:12px ui-monospace,monospace;color:#cbd5e1}.barbg{height:24px;background:#0a0f1c;border:1px solid #334155;border-radius:4px;overflow:hidden;position:relative}.barfill{height:100%;background:linear-gradient(90deg,#2563eb,#22d3ee);transition:width .15s}.meta{font:12px ui-monospace,monospace;color:#94a3b8;padding-top:10px}.caution{font-size:12px;color:#fcd34d;border-left:3px solid #f59e0b;padding:9px 12px;background:#3b2f1738;margin-top:12px}.formula{font:700 13px/1.7 ui-monospace,monospace;color:#67e8f9;background:#0a0f1c;border:1px solid #334155;padding:12px;border-radius:8px;overflow-wrap:anywhere}.foot{color:#64748b;font:11px ui-monospace,monospace;margin-top:25px;text-align:center}@media(max-width:800px){main{padding:12px 12px 45px}header{flex-direction:column}.heading{font-size:27px}.back{align-self:flex-start}.two{grid-template-columns:1fr}.pad{padding:15px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.stage{flex:1 1 130px}.logic{padding:15px 10px}}@media(max-width:480px){.heading{font-size:24px}.stages{flex-direction:column}.stage{flex:0 0 auto;width:100%;max-width:none;min-height:0;padding:10px}.arrow{transform:rotate(90deg);font-size:20px}.switches{gap:2px;flex-wrap:nowrap}.switch{width:calc((100% - 14px)/8);min-width:0}.track{width:21px;height:46px}.thumb{width:13px}.metrics{gap:7px}.metric{padding:9px}.metric b{font-size:14px}.display{gap:3px}.digit{width:21%}.timeline-row{grid-template-columns:94px minmax(0,1fr)}.tab{font-size:12px;padding:10px 8px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+</style></head>
+<body data-req="Challenge" data-step="1"><main>
+<header><div><div class="kicker">PROJECT 08 / CHALLENGE 01 / BLACKBOARD</div><h1 class="heading">Loadable Four-Digit Counter</h1><p class="sub">SW0 run/load · SW2:1 digit selection · SW7:4 BCD preset</p></div><a class="back" href="../index.html?project=Project_8">← Back to Simulations</a></header>
+<div class="layout">
+<section class="panel pad" aria-label="Architecture and simulation"><h2 class="panel-title"><span>ARCHITECTURE / SIGNAL FLOW</span><span class="status"><span class="dot"></span> INTERACTIVE</span></h2>
+<div class="metrics"><div class="metric"><label>INPUT CLOCK</label><b>100 MHz</b></div><div class="metric"><label>VIRTUAL TIME</label><b id="time">0.000 s</b></div><div class="metric"><label>COUNT / VALUE</label><b id="count">00</b></div><div class="metric"><label>CIRCUIT SIGNAL</label><b id="signal">READY</b></div></div>
+<div class="controlbar"><button id="play" class="pill primary" type="button">Run</button><button id="step" class="pill" type="button">Step +1s</button><button id="reset" class="pill" type="button">Reset Simulation</button><label class="mono" style="font-size:12px;color:#94a3b8" for="speed">Speed:</label><select id="speed" class="smallselect"><option value="1">1×</option><option value="5">5×</option><option value="20">20×</option><option value="100">100×</option></select></div>
+<div class="logic" role="img" aria-label="Signal flow blocks: SW0 / SW2:1 / SW7:4, Load / Run Selector, 4 Cascaded BCD Digits, 1 Hz Count Enable, 4 Digit Display"><div class="stages"><div class="stage">SW0 / SW2:1 / SW7:4</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">Load / Run Selector</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">4 Cascaded BCD Digits</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">1 Hz Count Enable</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">4 Digit Display</div></div></div>
+<div class="formula">SW0 = 0 → LOAD; SW0 = 1 → RUN at 1 Hz</div>
+</section>
+<div class="two">
+<section class="panel pad"><h2 class="panel-title"><span>PHYSICAL BLACKBOARD / VIRTUAL</span><span class="status">100 MHz source</span></h2>
+<div class="board"><div class="boardheader"><span>REALDIGITAL / BLACKBOARD</span><span>FPGA IO</span></div>
+<div class="ledrow" aria-label="Eight LED indicators"><div data-led="7"><span class="light"></span><span class="bitcaption">LD7</span></div><div data-led="6"><span class="light"></span><span class="bitcaption">LD6</span></div><div data-led="5"><span class="light"></span><span class="bitcaption">LD5</span></div><div data-led="4"><span class="light"></span><span class="bitcaption">LD4</span></div><div data-led="3"><span class="light"></span><span class="bitcaption">LD3</span></div><div data-led="2"><span class="light"></span><span class="bitcaption">LD2</span></div><div data-led="1"><span class="light"></span><span class="bitcaption">LD1</span></div><div data-led="0"><span class="light"></span><span class="bitcaption">LD0</span></div></div><div class="display" aria-label="Four digit seven segment display"><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 3"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 2"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 1"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 0"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg></div>
+<div class="switches" aria-label="Interactive slide switches"><button class="switch" type="button" data-sw="7" aria-label="Toggle SW7" aria-pressed="false"><span>SW7</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="6" aria-label="Toggle SW6" aria-pressed="false"><span>SW6</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="5" aria-label="Toggle SW5" aria-pressed="false"><span>SW5</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="4" aria-label="Toggle SW4" aria-pressed="false"><span>SW4</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="3" aria-label="Toggle SW3" aria-pressed="false"><span>SW3</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="2" aria-label="Toggle SW2" aria-pressed="false"><span>SW2</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="1" aria-label="Toggle SW1" aria-pressed="false"><span>SW1</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="0" aria-label="Toggle SW0" aria-pressed="false"><span>SW0</span><span class="track"><span class="thumb"></span></span></button></div><div class="readouts"><span class="readout">LED <b id="ledhex">0x00</b></span><span class="readout">SW <b id="swhex">0x00</b></span><span class="readout">7SEG <b id="digittext">0000</b></span><span class="readout">MODE <b id="runmode">LOAD</b></span></div>
+</div><p class="meta">Virtual controls model clock states. They do not program the FPGA.</p></section>
+<section class="panel pad"><h2 class="panel-title"><span>DESIGN EXPLANATION</span><span>REQ Challenge</span></h2><ul class="notes"><li>SW0 = 0 continuously loads the digit selected by SW2:1 from SW7:4.</li><li>SW0 = 1 runs the four-digit counter at exactly one increment per second.</li><li>The display remains multiplexed independently at 1 kHz scan rate.</li><li>Values greater than 9 are clamped to 9 in this implementation to preserve valid BCD.</li><li>Hardware loading is synchronous to the 100 MHz clock; no extra load button is required.</li></ul>
+<div class="caution">Accelerated browser simulation; the physical board uses a real 100 MHz clock. The simulator shows equivalent logical states, not individual 10 ns cycles.</div>
+</section></div>
+<section class="panel pad"><h2 class="panel-title"><span>EXPLORE THE DESIGN</span><span>RTL / TIMING</span></h2>
+<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-tab="timing">Timing View</button><button class="tab" role="tab" aria-selected="false" data-tab="verilog">Verilog Sources</button></div>
+<div class="tabpane" id="timing" role="tabpanel"><div class="timeline"><div class="timeline-row"><span>100 MHz cycles</span><span id="cycles">0</span></div><div class="timeline-row"><span>Clock phase</span><div class="barbg"><div class="barfill" id="phase" style="width:0%"></div></div></div></div><p class="meta">Use Step, Run, and Speed to watch the design advance through simulated time.</p></div>
+<div class="tabpane" id="verilog" role="tabpanel" hidden><div class="codehead"><span class="mono" style="font-size:12px;color:#94a3b8">Synthesizable Verilog · main top: challenge1_loadable_bcd</span><button id="copy" class="action" type="button">Copy Verilog</button></div><div class="codewrap"><pre><code id="code">// Challenge 1: SW0=run(1)/load(0); SW2:1 selects D0..D3; SW7:4 BCD data.
+// Loading occurs on the 100MHz system clock. Counting uses 1Hz clock enable.
+module challenge1_loadable_bcd (
+    input wire clk, input wire [7:0] sw,
+    output wire [3:0] seg_an, output wire [7:0] seg_cat
+);
+    wire tick_1hz;
+    wire clk_1khz;
+    wire [3:0] d0, d1, d2, d3;
+    wire run = sw[0];
+    wire [1:0] selected = sw[2:1];
+    wire [3:0] preset = sw[7:4];
+    p8_tick_generator #(.PERIOD(100000000)) one_second (
+        .clk(clk), .tick(tick_1hz)
+    );
+    p8_clock_divider #(.HALF_PERIOD(50000)) display_clock (
+        .clk(clk), .clk_out(clk_1khz)
+    );
+    p8_bcd_digit digit0 (.clk(clk), .enable(run &amp;&amp; tick_1hz),
+        .load(!run &amp;&amp; selected == 0), .load_value(preset), .q(d0));
+    p8_bcd_digit digit1 (.clk(clk), .enable(run &amp;&amp; tick_1hz &amp;&amp; d0 == 9),
+        .load(!run &amp;&amp; selected == 1), .load_value(preset), .q(d1));
+    p8_bcd_digit digit2 (.clk(clk), .enable(run &amp;&amp; tick_1hz &amp;&amp; d0 == 9 &amp;&amp; d1 == 9),
+        .load(!run &amp;&amp; selected == 2), .load_value(preset), .q(d2));
+    p8_bcd_digit digit3 (.clk(clk), .enable(run &amp;&amp; tick_1hz &amp;&amp; d0 == 9 &amp;&amp; d1 == 9 &amp;&amp; d2 == 9),
+        .load(!run &amp;&amp; selected == 3), .load_value(preset), .q(d3));
+    p8_sevenseg_scan scan (.clk_1khz(clk_1khz),
+        .d0(d0), .d1(d1), .d2(d2), .d3(d3), .seg_an(seg_an), .seg_cat(seg_cat));
+endmodule
+
+
+// Single-cycle clock-enable pulse every PERIOD input clocks.
+module p8_tick_generator #(parameter integer PERIOD = 100000000) (
+    input wire clk, output reg tick = 0
+);
+    localparam integer WIDTH = (PERIOD &gt; 1) ? $clog2(PERIOD) : 1;
+    reg [WIDTH-1:0] count = 0;
+    always @(posedge clk) begin
+        tick &lt;= 0;
+        if (count == PERIOD - 1) begin
+            count &lt;= 0;
+            tick &lt;= 1;
+        end else count &lt;= count + 1;
+    end
+endmodule
+
+
+// Reusable 50-percent-duty clock divider. Output frequency = input / (2 * HALF_PERIOD).
+module p8_clock_divider #(parameter integer HALF_PERIOD = 50000) (
+    input wire clk, output reg clk_out = 0
+);
+    localparam integer WIDTH = (HALF_PERIOD &gt; 1) ? $clog2(HALF_PERIOD) : 1;
+    reg [WIDTH-1:0] count = 0;
+    always @(posedge clk) begin
+        if (count == HALF_PERIOD - 1) begin
+            count &lt;= 0;
+            clk_out &lt;= ~clk_out;
+        end else count &lt;= count + 1;
+    end
+endmodule
+
+
+// Synchronous BCD digit with enable and optional parallel load.
+module p8_bcd_digit (
+    input wire clk, input wire enable, input wire load,
+    input wire [3:0] load_value, output reg [3:0] q = 0
+);
+    always @(posedge clk) begin
+        if (load) q &lt;= (load_value &gt; 9) ? 9 : load_value;
+        else if (enable) q &lt;= (q == 9) ? 0 : q + 1;
+    end
+endmodule
+
+
+// 1kHz scanning clock selects each of four digits in turn (250Hz per digit).
+module p8_sevenseg_scan (
+    input wire clk_1khz,
+    input wire [3:0] d0, d1, d2, d3,
+    output wire [3:0] seg_an,
+    output wire [7:0] seg_cat
+);
+    reg [1:0] scan = 0;
+    wire [3:0] current_digit;
+    wire [6:0] segments;
+    always @(posedge clk_1khz) scan &lt;= scan + 1;
+    p8_mux4x4 bus_mux (.d0(d0), .d1(d1), .d2(d2), .d3(d3), .sel(scan), .y(current_digit));
+    p8_decoder2to4 anode_decode (.sel(scan), .seg_an(seg_an));
+    p8_bcd7_decoder cathode_decode (.bcd(current_digit), .seg_cat(segments));
+    assign seg_cat = {1&#x27;b1, segments}; // DP off
+endmodule
+
+
+// Explicit 4:1, four-bit bus multiplexer.
+module p8_mux4x4 (
+    input wire [3:0] d0, d1, d2, d3, input wire [1:0] sel,
+    output reg [3:0] y
+);
+    always @* begin
+        case (sel)
+            0: y = d0;
+            1: y = d1;
+            2: y = d2;
+            3: y = d3;
+        endcase
+    end
+endmodule
+
+
+// 2:4 decoder: digit enables on Blackboard are active low.
+module p8_decoder2to4 (input wire [1:0] sel, output wire [3:0] seg_an);
+    assign seg_an = ~(4&#x27;b0001 &lt;&lt; sel);
+endmodule
+
+
+// Blackboard cathodes seg_cat[0]=A .. seg_cat[6]=G. Active low.
+module p8_bcd7_decoder (input wire [3:0] bcd, output reg [6:0] seg_cat);
+    always @* begin
+        case (bcd)
+            0: seg_cat = 7&#x27;b1000000;
+            1: seg_cat = 7&#x27;b1111001;
+            2: seg_cat = 7&#x27;b0100100;
+            3: seg_cat = 7&#x27;b0110000;
+            4: seg_cat = 7&#x27;b0011001;
+            5: seg_cat = 7&#x27;b0010010;
+            6: seg_cat = 7&#x27;b0000010;
+            7: seg_cat = 7&#x27;b1111000;
+            8: seg_cat = 7&#x27;b0000000;
+            9: seg_cat = 7&#x27;b0010000;
+            default: seg_cat = 7&#x27;b1111111;
+        endcase
+    end
+endmodule
+</code></pre></div></div>
+</section></div><footer class="foot">PROJECT 08 · Interactive learning simulator · Back navigation returns to project hub · Offline-capable</footer>
+</main><script>
+(() => {
+  "use strict";
+  const kind = document.body.dataset.req;
+  const q = (s) => document.querySelector(s);
+  const all = (s) => Array.from(document.querySelectorAll(s));
+  const el = (tag, classname = "", label = "") => {const x=document.createElement(tag);x.className=classname;x.textContent=label;return x;};
+  let seconds = 0;
+  let running = false;
+  let speed = 1;
+  let lastFrame = null;
+  let sw = new Array(8).fill(0);
+  let countValue = 0;
+  let selectedScan = 0;
+  const stepSize = Number(document.body.dataset.step);
+  const maxTime = 200000;
+  const digitPatterns = ["abcdef","bc","abdeg","abcdg","bcfg","acdfg","acdefg","abc","abcdefg","abcdfg"];
+  function bcdDigits(value){return [0,1,2,3].map(i=>Math.floor(value/Math.pow(10,i))%10);}
+  function drawDigits(value, digitsOn){
+    const digits = bcdDigits(value);
+    all('.digit').forEach((svg,i) => {
+      const valueAt = digits[3-i];
+      const on = digitsOn && (kind !== '4' || i === 3);
+      svg.querySelectorAll('[data-s]').forEach(s=>s.classList.toggle('on', on && digitPatterns[valueAt].includes(s.dataset.s)));
+      svg.style.opacity = on ? '1' : '.18';
+    });
+    q('#digittext').textContent = digits.slice().reverse().join('');
+  }
+  function doChallengeLoad(){
+    const mode=sw[0];
+    if(mode) return;
+    const index=sw[1]+2*sw[2];
+    const raw=sw[4]+2*sw[5]+4*sw[6]+8*sw[7];
+    const value=Math.min(raw,9);
+    const place=Math.pow(10,index);
+    countValue=countValue-Math.floor(countValue/place)%10*place+value*place;
+  }
+  function modelUpdate(elapsed){
+    if(kind==='Challenge') {
+      if(sw[0]) countValue=(countValue+Math.floor(elapsed))%10000;
+      else doChallengeLoad();
+    }
+  }
+  function draw(){
+    const cycles=Math.floor(seconds*100000000);
+    let ledBits=0, mainBits=0, stage='';
+    if(kind==='1') {
+      const div=Math.pow(2,27);
+      ledBits=Math.floor(cycles/div)%2;
+      mainBits=ledBits;
+      stage='Q27 = '+(ledBits?'HIGH':'LOW');
+    } else if(kind==='2'){
+      const div=Math.pow(2,27);
+      mainBits=Math.floor(cycles/div)%2;
+      ledBits=Math.floor((cycles+div)/(div*2))%16;
+      stage='Q27 = '+(mainBits?'HIGH':'LOW');
+    } else if(kind==='3') {
+      ledBits=Math.floor(seconds*2)%2;
+      mainBits=ledBits;
+      stage='1 kHz → 1 Hz';
+    } else if(kind==='4'){
+      countValue=Math.floor(seconds)%10;
+      stage='BCD = '+countValue;
+    } else if(kind==='5'){
+      countValue=Math.floor(seconds*1000)%10000;
+      stage='Count = '+String(countValue).padStart(4,'0');
+    } else {
+      stage=sw[0]?'RUN / 1 Hz':'LOAD / SW';
+    }
+    const d=kind==='4'||kind==='5'||kind==='Challenge';
+    drawDigits(countValue,d);
+    all('[data-led]').forEach(led=>{
+      const bit=Number(led.dataset.led);
+      const lit=!d && !!((ledBits>>>bit)&1);
+      led.querySelector('.light').classList.toggle('lit',lit);
+    });
+    q('#ledhex').textContent='0x'+ledBits.toString(16).toUpperCase().padStart(2,'0');
+    q('#time').textContent=seconds.toFixed(3)+' s';
+    q('#signal').textContent=stage;
+    q('#swhex').textContent='0x'+sw.reduce((a,v,i)=>a+(v<<i),0).toString(16).toUpperCase().padStart(2,'0');
+    const value=d?countValue:ledBits;
+    q('#count').textContent=String(value).padStart(d?4:2,'0');
+    q('#phase').style.width=(((seconds*2)%1)*100).toFixed(1)+'%';
+    q('#cycles').textContent=cycles.toLocaleString('en-US');
+    if(kind==='Challenge')q('#runmode').textContent=sw[0]?'RUN':'LOAD';
+  }
+  function advance(dt){
+    const prior=Math.floor(seconds+1e-9);
+    seconds=Math.min(maxTime,seconds+dt);
+    if(kind==='Challenge') modelUpdate(Math.floor(seconds+1e-9)-prior);
+    draw();
+    if(seconds>=maxTime)running=false;
+  }
+  function frame(t){
+    if(lastFrame!==null && running){
+      const dt=Math.max(0,Math.min(.15,(t-lastFrame)/1000))*speed;
+      advance(dt);
+    }
+    lastFrame=t;
+    requestAnimationFrame(frame);
+  }
+  q('#play').addEventListener('click',()=>{running=!running;q('#play').textContent=running?'Pause':'Run';q('#play').classList.toggle('active',running);});
+  q('#step').addEventListener('click',()=>advance(stepSize));
+  q('#reset').addEventListener('click',()=>{seconds=0;countValue=0;running=false;lastFrame=null;q('#play').textContent='Run';q('#play').classList.remove('active');if(kind==='Challenge')doChallengeLoad();draw();});
+  q('#speed').addEventListener('change',e=>speed=Number(e.target.value));
+  all('.switch').forEach(button=>button.addEventListener('click',()=>{
+    const i=Number(button.dataset.sw);sw[i]=1-sw[i];button.classList.toggle('on',!!sw[i]);button.setAttribute('aria-pressed',String(!!sw[i]));if(kind==='Challenge')doChallengeLoad();draw();
+  }));
+  all('.tab').forEach(button=>button.addEventListener('click',()=>{
+    all('.tab').forEach(b=>b.setAttribute('aria-selected',String(b===button)));
+    all('.tabpane').forEach(p=>p.hidden=p.id!==button.dataset.tab);
+  }));
+  q('#copy').addEventListener('click',async()=>{
+    const code=q('#code').textContent;
+    try{await navigator.clipboard.writeText(code);q('#copy').textContent='Copied';setTimeout(()=>q('#copy').textContent='Copy Verilog',1500);}
+    catch{q('#copy').textContent='Select code to copy';}
+  });
+  draw();requestAnimationFrame(frame);
+})();
+</script></body></html>
