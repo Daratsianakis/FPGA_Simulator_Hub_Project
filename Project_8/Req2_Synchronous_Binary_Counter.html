@@ -1,31 +1,34 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0f172a"><title>Project 8 · Requirement 2 · Synchronous Binary Counter</title>
-<style>
-:root{color-scheme:dark;--bg:#0f172a;--panel:#1e293b;--deep:#0a0f1c;--line:#334155;--blue:#60a5fa;--cyan:#22d3ee;--green:#4ade80;--muted:#94a3b8;--text:#f8fafc}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}a{color:inherit;text-decoration:none}.mono,code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}main{max-width:1250px;margin:auto;padding:18px 20px 60px}header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:15px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px}.kicker{font:700 11px/1.4 ui-monospace,monospace;color:var(--cyan);letter-spacing:.16em}.heading{font-size:clamp(23px,3.2vw,38px);line-height:1.15;margin:8px 0 9px;color:#60a5fa}.sub{color:var(--muted);margin:0}.back,.action{border:1px solid #475569;background:#334155;color:white;border-radius:7px;padding:10px 14px;font-size:13px;font-weight:750;white-space:nowrap}.back:hover,.action:hover{background:#475569}.primary{background:#2563eb;border-color:#3b82f6}.primary:hover{background:#1d4ed8}.layout{display:grid;gap:20px}.panel{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px #0002}.pad{padding:22px}.panel-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 20px;border-bottom:1px solid #334155;padding-bottom:12px;font:750 12px ui-monospace,monospace;letter-spacing:.1em;color:#cbd5e1}.status{display:inline-flex;align-items:center;gap:8px;color:var(--green);font-size:11px}.dot{width:9px;height:9px;border-radius:100%;background:var(--green);box-shadow:0 0 8px #4ade80}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:0}.metric label{font:700 10px ui-monospace,monospace;color:var(--muted);display:block}.metric b{font:750 clamp(13px,1.6vw,19px) ui-monospace,monospace;color:#67e8f9;overflow-wrap:anywhere}.logic{background:var(--deep);border:1px solid #334155;border-radius:9px;padding:20px 16px;min-width:0}.stages{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center}.stage{background:#17293e;border:2px solid #3b82f6;border-radius:8px;padding:12px 10px;min-width:100px;max-width:190px;text-align:center;font:750 12px/1.35 ui-monospace,monospace;color:#e2e8f0;flex:1 1 110px;overflow-wrap:anywhere}.stage:nth-of-type(4n){border-color:#22d3ee}.stage:last-of-type{border-color:#4ade80}.arrow{font-size:22px;color:#22d3ee;flex:0 0 auto}.notes{margin:18px 0 0;padding-left:20px;color:#cbd5e1;font-size:13px}.notes li{margin:6px 0}.controlbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:15px}.pill{border:1px solid #475569;background:#0f172a;border-radius:8px;padding:9px 12px;color:#e2e8f0;font:700 12px ui-monospace,monospace}.pill.active{border-color:#22d3ee;background:#083344;color:#67e8f9}.smallselect{background:#0f172a;color:#e2e8f0;border:1px solid #475569;border-radius:7px;padding:9px}.two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px}.board{background:#0b1322;border:1px solid #3b4d66;border-radius:12px;padding:18px;min-width:0}.boardheader{display:flex;justify-content:space-between;gap:10px;align-items:center;font:700 12px ui-monospace,monospace;color:#64748b;border-bottom:1px solid #334155;padding-bottom:12px}.ledrow{display:flex;justify-content:center;gap:clamp(6px,2vw,20px);margin:24px auto;flex-wrap:wrap}.light{width:19px;height:19px;border-radius:50%;display:block;margin:auto auto 7px;background:#064e3b;border:2px solid #14532d}.light.lit{background:#4ade80;border-color:#86efac;box-shadow:0 0 13px #22c55e}.bitcaption{font:700 10px ui-monospace,monospace;color:#94a3b8}.display{display:flex;justify-content:center;gap:4px;padding:18px 0 6px}.digit{width:min(18%,68px);height:auto;aspect-ratio:64/100;overflow:visible}.seg{fill:#123445;opacity:.42}.seg.on{fill:#4ade80;opacity:1;filter:drop-shadow(0 0 3px #4ade80)}.switches{display:flex;justify-content:center;gap:clamp(5px,1.5vw,15px);flex-wrap:wrap;margin-top:18px}.switch{width:clamp(34px,4.4vw,47px);height:75px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;color:var(--muted);border:0;padding:0;font:700 11px ui-monospace,monospace}.track{width:26px;height:48px;background:#0f172a;border:2px solid #475569;border-radius:5px;padding:2px;display:flex;align-items:flex-end}.thumb{width:18px;height:19px;background:#64748b;border-radius:2px}.switch.on .track{align-items:flex-start;border-color:#22c55e}.switch.on .thumb{background:#4ade80;box-shadow:0 0 7px #22c55e}.readouts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0 0}.readout{font:700 11px ui-monospace,monospace;border:1px solid var(--line);color:#67e8f9;padding:7px 9px;border-radius:6px}.tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #334155;margin:0 0 15px}.tab{padding:10px 13px;background:transparent;border:0;border-bottom:2px solid transparent;color:#94a3b8;font-weight:750}.tab[aria-selected="true"]{color:#60a5fa;border-color:#60a5fa}.tabpane[hidden]{display:none}.codehead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.codewrap{max-height:500px;overflow:auto;border:1px solid #334155;border-radius:8px;background:#090f1c}.codewrap pre{font:12px/1.55 ui-monospace,Consolas,monospace;padding:17px;margin:0;white-space:pre;tab-size:4;color:#e2e8f0}.timeline{display:grid;gap:8px}.timeline-row{display:grid;grid-template-columns:155px minmax(0,1fr);gap:9px;align-items:center;font:12px ui-monospace,monospace;color:#cbd5e1}.barbg{height:24px;background:#0a0f1c;border:1px solid #334155;border-radius:4px;overflow:hidden;position:relative}.barfill{height:100%;background:linear-gradient(90deg,#2563eb,#22d3ee);transition:width .15s}.meta{font:12px ui-monospace,monospace;color:#94a3b8;padding-top:10px}.caution{font-size:12px;color:#fcd34d;border-left:3px solid #f59e0b;padding:9px 12px;background:#3b2f1738;margin-top:12px}.formula{font:700 13px/1.7 ui-monospace,monospace;color:#67e8f9;background:#0a0f1c;border:1px solid #334155;padding:12px;border-radius:8px;overflow-wrap:anywhere}.foot{color:#64748b;font:11px ui-monospace,monospace;margin-top:25px;text-align:center}@media(max-width:800px){main{padding:12px 12px 45px}header{flex-direction:column}.heading{font-size:27px}.back{align-self:flex-start}.two{grid-template-columns:1fr}.pad{padding:15px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.stage{flex:1 1 130px}.logic{padding:15px 10px}}@media(max-width:480px){.heading{font-size:24px}.stages{flex-direction:column}.stage{flex:0 0 auto;width:100%;max-width:none;min-height:0;padding:10px}.arrow{transform:rotate(90deg);font-size:20px}.switches{gap:2px;flex-wrap:nowrap}.switch{width:calc((100% - 14px)/8);min-width:0}.track{width:21px;height:46px}.thumb{width:13px}.metrics{gap:7px}.metric{padding:9px}.metric b{font-size:14px}.display{gap:3px}.digit{width:21%}.timeline-row{grid-template-columns:94px minmax(0,1fr)}.tab{font-size:12px;padding:10px 8px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0f172a"><title>Project 8 | Synchronous Binary Counter</title><style>
+:root{color-scheme:dark;--bg:#0f172a;--panel:#1e293b;--mid:#122238;--deep:#080f1e;--line:#34445f;--blue:#3b82f6;--cyan:#22d3ee;--green:#4ade80;--purple:#a78bfa;--text:#f8fafc;--muted:#a4b4ca}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:var(--bg);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}a{color:inherit;text-decoration:none}.mono,code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+main{max-width:1420px;margin:auto;padding:22px 22px 56px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding:0 0 24px;margin-bottom:24px}.kicker{font:750 11px/1.5 ui-monospace,monospace;letter-spacing:.14em;color:#67e8f9}.heading{font-size:clamp(24px,3vw,38px);line-height:1.16;color:#60a5fa;margin:8px 0 8px}.subtitle{margin:0;color:var(--muted);font-size:14px}.back{display:inline-flex;align-items:center;padding:11px 16px;white-space:nowrap;background:#334155;border:1px solid #53657e;border-radius:7px;font-size:13px;font-weight:750}.back:hover{background:#475569}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0;margin-bottom:20px;box-shadow:0 8px 26px #0002}.panelbody{padding:24px}.panelhead{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);padding-bottom:13px;margin-bottom:17px;color:#cbd5e1;font:750 12px ui-monospace,monospace;letter-spacing:.08em}.statepill{color:var(--green);display:inline-flex;align-items:center;gap:8px;font-size:11px}.statepill::before{content:"";height:8px;width:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.control{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 13px}.button,.speed{background:#111c31;color:#e2e8f0;border:1px solid #4a5a73;border-radius:7px;font-size:12px;font-weight:750;padding:10px 15px;min-height:42px}.button:hover{background:#263b55}.button.primary{background:#2563eb;border-color:#3b82f6;color:white}.button.primary:hover{background:#1d4ed8}.button.danger{border-color:#7f1d1d;background:#3e1820}.speed{padding:9px 12px}.speedlabel{font-size:12px;color:var(--muted)}
+.telemetry{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.telem{background:#0c1628;border:1px solid #354760;border-radius:8px;padding:12px;min-width:0}.telem small{display:block;color:#94a3b8;font:750 10px ui-monospace,monospace;letter-spacing:.04em;margin-bottom:4px}.telem strong{color:#67e8f9;font:800 16px ui-monospace,monospace;overflow-wrap:anywhere}
+.diagramShell{position:relative;border:1px solid #34465f;border-radius:10px;background:radial-gradient(circle at 45% 45%,#0d1d30,#080f1d 72%);padding:14px 16px;overflow:hidden}.diagramLegend{display:flex;gap:14px;flex-wrap:wrap;color:#9caec8;font:700 10px ui-monospace,monospace;padding:0 2px 10px}.legend{display:inline-flex;gap:6px;align-items:center}.legend i{width:11px;height:11px;border:2px solid currentColor;border-radius:2px;display:inline-block}.svgDiagram{width:100%;height:auto;display:block;overflow:visible}.node{fill:#1b2b40;stroke-width:2}.nodeTitle{font:700 13px ui-monospace,monospace;fill:#f1f5f9;text-anchor:middle}.nodeValue{font:700 12px ui-monospace,monospace;fill:#67e8f9;text-anchor:middle}.nodeSmall{font:700 10px ui-monospace,monospace;fill:#94a3b8;text-anchor:middle}.wireBase{fill:none;stroke:#34465e;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}.wireSignal{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .12s,opacity .12s;opacity:.28}.wireSignal.live{opacity:1;filter:drop-shadow(0 0 4px currentColor)}.wireSignal.running.live{stroke-dasharray:10 7;animation:flow .75s linear infinite}.wireLabel{font:700 10px ui-monospace,monospace;fill:#9cb2cb;text-anchor:middle}.junction{fill:#67e8f9}.diagramFoot{color:#91a5bd;font:11px ui-monospace,monospace;margin:10px 2px 0}
+@keyframes flow{to{stroke-dashoffset:-34}}
+.board{background:#0a1222;border:1px solid #3a4e6b;border-radius:12px;padding:16px 20px;min-height:160px}.boardhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 0 13px;border-bottom:1px solid #314258;color:#8a9bb3;font:700 11px ui-monospace,monospace}.boardbody{display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;min-height:110px;padding:23px 0}.ledbank{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}.ledUnit{text-align:center;color:#a6b8ce;font:700 11px ui-monospace,monospace}.ledLamp{display:block;width:23px;height:23px;border-radius:50%;border:2px solid #115232;background:#064e3b;margin:0 auto 8px}.ledLamp.lit{background:#4ade80;border-color:#86efac;box-shadow:0 0 16px #22c55e}.displayWrap{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}.displayDigit{width:64px;height:100px}.seg{fill:#103242;opacity:.4}.seg.on{fill:#4ade80;opacity:1;filter:drop-shadow(0 0 4px #4ade80)}.digitBox{display:flex;flex-direction:column;align-items:center;gap:3px}.digitLabel{font:700 11px ui-monospace,monospace;color:#95a9c3}.switchBank{display:flex;gap:13px;align-items:flex-end;justify-content:center;flex-wrap:wrap}.swButton{background:transparent;border:0;padding:0;color:#99abc0;font:700 11px ui-monospace,monospace;display:flex;align-items:center;flex-direction:column;gap:5px;min-width:42px}.swRole{font-size:10px;color:#5fd8f4;max-width:72px;text-align:center;line-height:1.3}.switchTrack{width:28px;height:56px;border-radius:5px;border:2px solid #53657c;background:#111b2e;display:flex;align-items:flex-end;padding:3px}.switchThumb{width:18px;height:23px;background:#64748b;border-radius:2px}.swButton.on .switchTrack{align-items:flex-start;border-color:#4ade80}.swButton.on .switchThumb{background:#4ade80;box-shadow:0 0 8px #4ade80}.boardmeta{border-top:1px solid #314258;padding:12px 0 0;color:#a4b5cb;font:11px ui-monospace,monospace;display:flex;flex-wrap:wrap;gap:18px}.boardmeta strong{color:#67e8f9}.physicalNote{color:#93a8bd;font:11px ui-monospace,monospace;margin:12px 1px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}.tab{border:0;border-bottom:3px solid transparent;padding:11px 14px;color:#acbbd0;background:transparent;font-weight:750;font-size:13px}.tab[aria-selected="true"]{color:#60a5fa;border-color:#3b82f6}.tabpane[hidden]{display:none}.tabpane{color:#d5e0ec;font-size:14px}.tabpane p{line-height:1.7}.tabpane ul,.tabpane ol{padding-left:22px}.tabpane li{margin:8px 0}.formula{background:#0a1424;border:1px solid #334155;border-radius:7px;color:#67e8f9;padding:13px 15px;font:750 13px/1.6 ui-monospace,monospace;overflow-wrap:anywhere}.notes{max-width:940px}.caution{background:#35290c5c;border-left:3px solid #eab308;color:#fcd34d;padding:12px 14px;margin:16px 0;font-size:12px}.codehead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;color:#9bb0ca;font:12px ui-monospace,monospace}.codewrap{background:#080f1d;border:1px solid #34455d;border-radius:8px;overflow:auto;max-height:600px}.codewrap pre{margin:0;padding:17px 18px;font:12px/1.65 ui-monospace,monospace;white-space:pre;tab-size:4;color:#e2e8f0}.signalRows{display:grid;gap:10px}.sigRow{display:grid;grid-template-columns:165px minmax(0,1fr) 90px;gap:10px;align-items:center;color:#cbd5e1;font:12px ui-monospace,monospace}.sigTrack{height:14px;background:#0a1220;border:1px solid #334155;border-radius:3px;overflow:hidden}.sigFill{height:100%;background:linear-gradient(90deg,#2563eb,#22d3ee);width:0;transition:width .12s}.sigValue{color:#67e8f9;text-align:right}.foot{color:#64748b;font:11px ui-monospace,monospace;text-align:center;padding:7px 0 24px}
+@media(max-width:750px){main{padding:12px 12px 45px}header{align-items:flex-start;flex-direction:column;gap:12px}.heading{font-size:25px}.panelbody{padding:15px}.telemetry{grid-template-columns:repeat(2,minmax(0,1fr))}.diagramShell{padding:11px 8px}.boardbody{gap:20px}.sigRow{grid-template-columns:90px minmax(0,1fr) 60px;font-size:11px}.panelhead{font-size:11px}.tab{font-size:12px;padding:10px 8px}.diagramLegend{gap:9px}}
+@media(max-width:420px){.heading{font-size:23px}.panelbody{padding:12px}.control{gap:6px}.button,.speed{padding:9px 10px;font-size:11px}.telem{padding:10px}.telem strong{font-size:13px}.telem small{font-size:9px}.displayDigit{width:53px;height:83px}.displayWrap{gap:5px}.board{padding:12px}.ledbank{gap:13px}.swButton{min-width:33px}.switchBank{gap:6px}.diagramLegend{font-size:9px}.wireLabel{font-size:9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head>
 <body data-req="2" data-step="0.5"><main>
-<header><div><div class="kicker">PROJECT 08 / REQUIREMENT 02 / BLACKBOARD</div><h1 class="heading">Synchronous Binary Counter</h1><p class="sub">28-bit counter · Q27 secondary clock · 4-bit LED counter</p></div><a class="back" href="../index.html?project=Project_8">← Back to Simulations</a></header>
-<div class="layout">
-<section class="panel pad" aria-label="Architecture and simulation"><h2 class="panel-title"><span>ARCHITECTURE / SIGNAL FLOW</span><span class="status"><span class="dot"></span> INTERACTIVE</span></h2>
-<div class="metrics"><div class="metric"><label>INPUT CLOCK</label><b>100 MHz</b></div><div class="metric"><label>VIRTUAL TIME</label><b id="time">0.000 s</b></div><div class="metric"><label>COUNT / VALUE</label><b id="count">00</b></div><div class="metric"><label>CIRCUIT SIGNAL</label><b id="signal">READY</b></div></div>
-<div class="controlbar"><button id="play" class="pill primary" type="button">Run</button><button id="step" class="pill" type="button">Step +0.5s</button><button id="reset" class="pill" type="button">Reset Simulation</button><label class="mono" style="font-size:12px;color:#94a3b8" for="speed">Speed:</label><select id="speed" class="smallselect"><option value="1">1×</option><option value="5">5×</option><option value="20">20×</option><option value="100">100×</option></select></div>
-<div class="logic" role="img" aria-label="Signal flow blocks: CLK 100 MHz, 28-bit Synchronous Counter, Bit 27 Rising Edge, 4-bit Counter, LD3..LD0"><div class="stages"><div class="stage">CLK 100 MHz</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">28-bit Synchronous Counter</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">Bit 27 Rising Edge</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">4-bit Counter</div><span class="arrow" aria-hidden="true">➜</span><div class="stage">LD3..LD0</div></div></div>
-<div class="formula">f(Q27) = 100 MHz / 2^28 ≈ 0.372529 Hz</div>
-</section>
-<div class="two">
-<section class="panel pad"><h2 class="panel-title"><span>PHYSICAL BLACKBOARD / VIRTUAL</span><span class="status">100 MHz source</span></h2>
-<div class="board"><div class="boardheader"><span>REALDIGITAL / BLACKBOARD</span><span>FPGA IO</span></div>
-<div class="ledrow" aria-label="Eight LED indicators"><div data-led="7"><span class="light"></span><span class="bitcaption">LD7</span></div><div data-led="6"><span class="light"></span><span class="bitcaption">LD6</span></div><div data-led="5"><span class="light"></span><span class="bitcaption">LD5</span></div><div data-led="4"><span class="light"></span><span class="bitcaption">LD4</span></div><div data-led="3"><span class="light"></span><span class="bitcaption">LD3</span></div><div data-led="2"><span class="light"></span><span class="bitcaption">LD2</span></div><div data-led="1"><span class="light"></span><span class="bitcaption">LD1</span></div><div data-led="0"><span class="light"></span><span class="bitcaption">LD0</span></div></div><div class="display" aria-label="Four digit seven segment display"><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 3"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 2"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 1"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg><svg class="digit" viewBox="0 0 50 100" aria-label="Seven-segment digit 0"><polygon class="seg" data-s="a" points="10,5 40,5 35,11 15,11"/><polygon class="seg" data-s="b" points="42,7 47,12 47,42 41,47 38,40 38,15"/><polygon class="seg" data-s="c" points="42,52 47,57 47,87 42,93 38,85 38,59"/><polygon class="seg" data-s="d" points="10,95 40,95 35,89 15,89"/><polygon class="seg" data-s="e" points="8,52 12,59 12,85 8,93 3,87 3,57"/><polygon class="seg" data-s="f" points="8,7 12,15 12,40 8,47 3,42 3,12"/><polygon class="seg" data-s="g" points="11,50 15,45 35,45 40,50 35,55 15,55"/></svg></div>
-<div class="switches" aria-label="Interactive slide switches"><button class="switch" type="button" data-sw="7" aria-label="Toggle SW7" aria-pressed="false"><span>SW7</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="6" aria-label="Toggle SW6" aria-pressed="false"><span>SW6</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="5" aria-label="Toggle SW5" aria-pressed="false"><span>SW5</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="4" aria-label="Toggle SW4" aria-pressed="false"><span>SW4</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="3" aria-label="Toggle SW3" aria-pressed="false"><span>SW3</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="2" aria-label="Toggle SW2" aria-pressed="false"><span>SW2</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="1" aria-label="Toggle SW1" aria-pressed="false"><span>SW1</span><span class="track"><span class="thumb"></span></span></button><button class="switch" type="button" data-sw="0" aria-label="Toggle SW0" aria-pressed="false"><span>SW0</span><span class="track"><span class="thumb"></span></span></button></div><div class="readouts"><span class="readout">LED <b id="ledhex">0x00</b></span><span class="readout">SW <b id="swhex">0x00</b></span><span class="readout">7SEG <b id="digittext">0000</b></span><span id="runmode" hidden></span></div>
-</div><p class="meta">Virtual controls model clock states. They do not program the FPGA.</p></section>
-<section class="panel pad"><h2 class="panel-title"><span>DESIGN EXPLANATION</span><span>REQ 2</span></h2><ul class="notes"><li>Every bit of the 28-bit counter is registered on the same 100 MHz rising edge.</li><li>Q27 toggles at 0.3725 Hz, the closest bit to 0.5 Hz.</li><li>A second four-bit counter advances on the rising edge of Q27.</li><li>One secondary increment occurs every 2.684 seconds, after its initial first edge at approximately 1.342 seconds.</li></ul>
-<div class="caution">Accelerated browser simulation; the physical board uses a real 100 MHz clock. The simulator shows equivalent logical states, not individual 10 ns cycles.</div>
-</section></div>
-<section class="panel pad"><h2 class="panel-title"><span>EXPLORE THE DESIGN</span><span>RTL / TIMING</span></h2>
-<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-tab="timing">Timing View</button><button class="tab" role="tab" aria-selected="false" data-tab="verilog">Verilog Sources</button></div>
-<div class="tabpane" id="timing" role="tabpanel"><div class="timeline"><div class="timeline-row"><span>100 MHz cycles</span><span id="cycles">0</span></div><div class="timeline-row"><span>Clock phase</span><div class="barbg"><div class="barfill" id="phase" style="width:0%"></div></div></div></div><p class="meta">Use Step, Run, and Speed to watch the design advance through simulated time.</p></div>
-<div class="tabpane" id="verilog" role="tabpanel" hidden><div class="codehead"><span class="mono" style="font-size:12px;color:#94a3b8">Synthesizable Verilog · main top: req2_sync_binary_counter</span><button id="copy" class="action" type="button">Copy Verilog</button></div><div class="codewrap"><pre><code id="code">// Requirement 2: 28-bit synchronous counter driving a 4-bit secondary counter.
+<header><div><div class="kicker">REALDIGITAL / BLACKBOARD · PROJECT 08 / REQUIREMENT 02</div><h1 class="heading">Synchronous Binary Counter</h1><p class="subtitle">28-bit counter · Q27 secondary clock · 4-bit LED counter</p></div><a class="back" href="../index.html?project=Project_8">← Back to Simulations</a></header>
+<section class="panel" aria-label="Interactive circuit architecture"><div class="panelbody">
+<div class="panelhead"><span>ARCHITECTURE / LIVE SIGNALS</span><span class="statepill">INTERACTIVE</span></div>
+<div class="telemetry"><div class="telem"><small>INPUT CLOCK</small><strong>100 MHz</strong></div><div class="telem"><small>VIRTUAL TIME</small><strong id="time">0.000 s</strong></div><div class="telem"><small>COUNT / OUTPUT</small><strong id="value">0</strong></div><div class="telem"><small>OBSERVED SIGNAL</small><strong id="status">READY</strong></div></div>
+<div class="control"><button id="play" class="button primary" aria-pressed="false">Run</button><button id="step" class="button">Step +0.5s</button><button id="reset" class="button danger">Reset</button><label class="speedlabel mono" for="speed">Speed</label><select id="speed" class="speed"><option value="1">1×</option><option value="5">5×</option><option value="20">20×</option><option value="100">100×</option></select></div>
+<div class="diagramShell"><div class="diagramLegend"><span class="legend" style="color:var(--blue)"><i></i> MASTER CLOCK</span><span class="legend" style="color:var(--cyan)"><i></i> DIVIDED CLOCK</span><span class="legend" style="color:var(--purple)"><i></i> DATA BUS</span><span class="legend" style="color:var(--green)"><i></i> OUTPUT</span></div><svg class="svgDiagram" id="architecture" aria-label="Interactive circuit block diagram"></svg></div>
+<p class="diagramFoot">Signal paths brighten when logically active. Use Step / Run to inspect each circuit stage. The master clock is too fast to display cycle by cycle.</p>
+</div></section>
+<section class="panel" aria-label="Blackboard hardware"><div class="panelbody"><div class="panelhead"><span>PHYSICAL BLACKBOARD / CONNECTED IO</span><span class="statepill">VIRTUAL BOARD</span></div><div class="board"><div class="boardhead"><span>REALDIGITAL / BLACKBOARD</span><span>ACTIVE PORTS ONLY</span></div><div class="boardbody" id="boardbody"></div><div class="boardmeta" id="boardmeta"></div></div><p class="physicalNote">Only the actual output devices and input switches connected in this requirement are shown.</p></div></section>
+<section class="panel" aria-label="Design documentation"><div class="panelbody"><div class="panelhead"><span>EXPLORE / STUDY / VERIFY</span><span>RTL + DOCUMENTATION</span></div>
+<div class="tabs" role="tablist" aria-label="Documentation tabs"><button class="tab" role="tab" data-tab="explain" aria-selected="true">Design Explanation</button><button class="tab" role="tab" data-tab="timing" aria-selected="false">Timing / Signals</button><button class="tab" role="tab" data-tab="verilog" aria-selected="false">Verilog Sources</button><button class="tab" role="tab" data-tab="operation" aria-selected="false">Operation Documentation</button></div>
+<div class="tabpane" id="explain" role="tabpanel"><div class="notes"><ul><li>The 28-bit main counter increments on each rising edge of the same 100 MHz clock. It is synchronous: no ripple clocks inside this counter.</li><li>Bit Q27 toggles every 2^27 input cycles, and its full period is 2^28 cycles, giving approximately 0.3725 Hz.</li><li>The secondary 4-bit counter advances only on rising edges of Q27, so its four output bits become LD3..LD0.</li><li>The very first rising edge of Q27 arrives after about 1.342 seconds from the initial all-zero count.</li></ul><div class="formula">f(Q27) = 100 MHz / 2^28 ≈ 0.372529 Hz; first rising edge ≈ 1.34218 s</div><div class="caution">Browser time is accelerated for learning. The display shows corresponding sampled logic states, not every 10 ns master-clock transition.</div></div></div>
+<div class="tabpane" id="timing" role="tabpanel" hidden><div class="signalRows" id="signalRows"><div class="sigRow" data-signal="q27"><span>Q27</span><div class="sigTrack"><div class="sigFill"></div></div><span class="sigValue">0</span></div><div class="sigRow" data-signal="count4"><span>COUNT4</span><div class="sigTrack"><div class="sigFill"></div></div><span class="sigValue">0</span></div><div class="sigRow" data-signal="count28"><span>COUNT28</span><div class="sigTrack"><div class="sigFill"></div></div><span class="sigValue">0</span></div></div><p>These bars visualize representative logic values or the current counter phase, rather than replicating every 100 MHz transition.</p></div>
+<div class="tabpane" id="verilog" role="tabpanel" hidden><div class="codehead"><span>TOP: req2_sync_binary_counter · SUPPORTING MODULES INCLUDED</span><button id="copy" class="button">Copy Complete Verilog</button></div><div class="codewrap"><pre><code id="code">// Requirement 2: 28-bit synchronous counter driving a 4-bit secondary counter.
 // Bit 27 toggles at 100MHz / 2^28 = 0.372529Hz (closest binary bit to 0.5Hz).
 module req2_sync_binary_counter (input wire clk, output wire [7:0] led);
     reg [27:0] main_count = 0;
@@ -35,124 +38,258 @@ module req2_sync_binary_counter (input wire clk, output wire [7:0] led);
     assign led = {4&#x27;b0000, slow_count};
 endmodule
 </code></pre></div></div>
-</section></div><footer class="foot">PROJECT 08 · Interactive learning simulator · Back navigation returns to project hub · Offline-capable</footer>
+<div class="tabpane" id="operation" role="tabpanel" hidden><div class="notes"><h3>How to operate this requirement</h3><ol><li>Step forward 0.5s at a time and watch the Q27 signal.</li><li>Advance beyond 1.342s to observe the first increment in the secondary four-bit counter.</li><li>Observe LD0..LD3 as binary bits, not as a one-hot pattern.</li><li>Because the secondary counter uses Q27 as its clock, its input is a derived clock.</li></ol><h3>Hardware notes</h3><p>The virtual controls are a learning model; actual FPGA operation uses the 100 MHz Blackboard clock and the top-level Verilog module. Run, Step and Reset are browser simulation controls, not additional physical board inputs.</p><div class="caution">Browser time is accelerated for learning. The display shows corresponding sampled logic states, not every 10 ns master-clock transition.</div></div></div>
+</div></section><footer class="foot">PROJECT 08 · INTERACTIVE LOGIC LAB · SELF-CONTAINED HTML · PROJECT 7 VISUAL LANGUAGE</footer>
 </main><script>
 (() => {
-  "use strict";
-  const kind = document.body.dataset.req;
-  const q = (s) => document.querySelector(s);
-  const all = (s) => Array.from(document.querySelectorAll(s));
-  const el = (tag, classname = "", label = "") => {const x=document.createElement(tag);x.className=classname;x.textContent=label;return x;};
-  let seconds = 0;
-  let running = false;
-  let speed = 1;
-  let lastFrame = null;
-  let sw = new Array(8).fill(0);
-  let countValue = 0;
-  let selectedScan = 0;
-  const stepSize = Number(document.body.dataset.step);
-  const maxTime = 200000;
-  const digitPatterns = ["abcdef","bc","abdeg","abcdg","bcfg","acdfg","acdefg","abc","abcdefg","abcdfg"];
-  function bcdDigits(value){return [0,1,2,3].map(i=>Math.floor(value/Math.pow(10,i))%10);}
-  function drawDigits(value, digitsOn){
-    const digits = bcdDigits(value);
-    all('.digit').forEach((svg,i) => {
-      const valueAt = digits[3-i];
-      const on = digitsOn && (kind !== '4' || i === 3);
-      svg.querySelectorAll('[data-s]').forEach(s=>s.classList.toggle('on', on && digitPatterns[valueAt].includes(s.dataset.s)));
-      svg.style.opacity = on ? '1' : '.18';
-    });
-    q('#digittext').textContent = digits.slice().reverse().join('');
-  }
-  function doChallengeLoad(){
-    const mode=sw[0];
-    if(mode) return;
-    const index=sw[1]+2*sw[2];
-    const raw=sw[4]+2*sw[5]+4*sw[6]+8*sw[7];
-    const value=Math.min(raw,9);
-    const place=Math.pow(10,index);
-    countValue=countValue-Math.floor(countValue/place)%10*place+value*place;
-  }
-  function modelUpdate(elapsed){
-    if(kind==='Challenge') {
-      if(sw[0]) countValue=(countValue+Math.floor(elapsed))%10000;
-      else doChallengeLoad();
-    }
-  }
-  function draw(){
-    const cycles=Math.floor(seconds*100000000);
-    let ledBits=0, mainBits=0, stage='';
-    if(kind==='1') {
-      const div=Math.pow(2,27);
-      ledBits=Math.floor(cycles/div)%2;
-      mainBits=ledBits;
-      stage='Q27 = '+(ledBits?'HIGH':'LOW');
-    } else if(kind==='2'){
-      const div=Math.pow(2,27);
-      mainBits=Math.floor(cycles/div)%2;
-      ledBits=Math.floor((cycles+div)/(div*2))%16;
-      stage='Q27 = '+(mainBits?'HIGH':'LOW');
-    } else if(kind==='3') {
-      ledBits=Math.floor(seconds*2)%2;
-      mainBits=ledBits;
-      stage='1 kHz → 1 Hz';
-    } else if(kind==='4'){
-      countValue=Math.floor(seconds)%10;
-      stage='BCD = '+countValue;
-    } else if(kind==='5'){
-      countValue=Math.floor(seconds*1000)%10000;
-      stage='Count = '+String(countValue).padStart(4,'0');
-    } else {
-      stage=sw[0]?'RUN / 1 Hz':'LOAD / SW';
-    }
-    const d=kind==='4'||kind==='5'||kind==='Challenge';
-    drawDigits(countValue,d);
-    all('[data-led]').forEach(led=>{
-      const bit=Number(led.dataset.led);
-      const lit=!d && !!((ledBits>>>bit)&1);
-      led.querySelector('.light').classList.toggle('lit',lit);
-    });
-    q('#ledhex').textContent='0x'+ledBits.toString(16).toUpperCase().padStart(2,'0');
-    q('#time').textContent=seconds.toFixed(3)+' s';
-    q('#signal').textContent=stage;
-    q('#swhex').textContent='0x'+sw.reduce((a,v,i)=>a+(v<<i),0).toString(16).toUpperCase().padStart(2,'0');
-    const value=d?countValue:ledBits;
-    q('#count').textContent=String(value).padStart(d?4:2,'0');
-    q('#phase').style.width=(((seconds*2)%1)*100).toFixed(1)+'%';
-    q('#cycles').textContent=cycles.toLocaleString('en-US');
-    if(kind==='Challenge')q('#runmode').textContent=sw[0]?'RUN':'LOAD';
-  }
-  function advance(dt){
-    const prior=Math.floor(seconds+1e-9);
-    seconds=Math.min(maxTime,seconds+dt);
-    if(kind==='Challenge') modelUpdate(Math.floor(seconds+1e-9)-prior);
-    draw();
-    if(seconds>=maxTime)running=false;
-  }
-  function frame(t){
-    if(lastFrame!==null && running){
-      const dt=Math.max(0,Math.min(.15,(t-lastFrame)/1000))*speed;
-      advance(dt);
-    }
-    lastFrame=t;
-    requestAnimationFrame(frame);
-  }
-  q('#play').addEventListener('click',()=>{running=!running;q('#play').textContent=running?'Pause':'Run';q('#play').classList.toggle('active',running);});
-  q('#step').addEventListener('click',()=>advance(stepSize));
-  q('#reset').addEventListener('click',()=>{seconds=0;countValue=0;running=false;lastFrame=null;q('#play').textContent='Run';q('#play').classList.remove('active');if(kind==='Challenge')doChallengeLoad();draw();});
-  q('#speed').addEventListener('change',e=>speed=Number(e.target.value));
-  all('.switch').forEach(button=>button.addEventListener('click',()=>{
-    const i=Number(button.dataset.sw);sw[i]=1-sw[i];button.classList.toggle('on',!!sw[i]);button.setAttribute('aria-pressed',String(!!sw[i]));if(kind==='Challenge')doChallengeLoad();draw();
-  }));
-  all('.tab').forEach(button=>button.addEventListener('click',()=>{
-    all('.tab').forEach(b=>b.setAttribute('aria-selected',String(b===button)));
-    all('.tabpane').forEach(p=>p.hidden=p.id!==button.dataset.tab);
-  }));
-  q('#copy').addEventListener('click',async()=>{
-    const code=q('#code').textContent;
-    try{await navigator.clipboard.writeText(code);q('#copy').textContent='Copied';setTimeout(()=>q('#copy').textContent='Copy Verilog',1500);}
-    catch{q('#copy').textContent='Select code to copy';}
-  });
-  draw();requestAnimationFrame(frame);
+ "use strict";
+ const kind=document.body.dataset.req;
+ const $=q=>document.querySelector(q);
+ const $$=q=>Array.from(document.querySelectorAll(q));
+ const clockHz=100000000;
+ const step=Number(document.body.dataset.step);
+ const mobileBreakpoint=650;
+ let time=0, running=false, speed=1, previousFrame=null, countValue=0;
+ let sw=Array(8).fill(0);
+ const f2=n=>n.toFixed(3);
+ const bits=(v,n)=> (v>>>0).toString(2).padStart(n,"0");
+ function state(){
+   const cycles=Math.floor(time*clockHz);
+   const q=i=>Math.floor(cycles/Math.pow(2,i))%2;
+   const q27=q(27), q26=q(26);
+   const slowCount=Math.floor((cycles+Math.pow(2,27))/Math.pow(2,28))%16;
+   const clk1k=Math.floor(time*2000)%2;
+   const clk1=Math.floor(time*2)%2;
+   let bcd=countValue;
+   if(kind==='4')bcd=Math.floor(time+0.5)%10;
+   if(kind==='5')bcd=Math.floor((time+0.0005)*1000)%10000;
+   const dig=Array.from({length:4},(_,i)=>Math.floor(bcd/10**i)%10);
+   const scan=Math.floor(time*1000)%4;
+   const output=kind==='1'?q27:kind==='2'?slowCount:kind==='3'?clk1:0;
+   const selected=sw[1]+sw[2]*2, preset=sw[4]+sw[5]*2+sw[6]*4+sw[7]*8;
+   return {cycles,q,q27,q26,slowCount,clk1k,clk1,bcd,dig,scan,selected,preset,output,run:!!sw[0],enabled:kind==='Challenge'?!!sw[0]:true};
+ }
+ function loadDigit(){
+   if(kind!=='Challenge'||sw[0])return;
+   const index=sw[1]+sw[2]*2, preset=Math.min(9,sw[4]+sw[5]*2+sw[6]*4+sw[7]*8);
+   const base=10**index;
+   countValue=countValue-Math.floor(countValue/base)%10*base+preset*base;
+ }
+ function advance(delta){
+   const before=Math.floor(time+1e-9);
+   time=Math.min(100000,time+delta);
+   if(kind==='Challenge'&&sw[0])countValue=(countValue+Math.floor(time+1e-9)-before)%10000;
+   if(kind==='Challenge'&&!sw[0])loadDigit();
+   render();
+ }
+ function frame(now){
+   if(running&&previousFrame!==null)advance(Math.min(.15,(now-previousFrame)/1000)*speed);
+   previousFrame=now;requestAnimationFrame(frame);
+ }
+ function valueFor(key,s){
+   const d=s.dig;
+   const map={sys:'100 MHz',q0:`${s.q(0)}`,q1:`${s.q(1)}`,q26:`${s.q26}`,q27:`${s.q27}`,count28:`0x${(s.cycles%2**28).toString(16).padStart(7,'0')}`,count4:bits(s.slowCount,4),
+     clk1k:`${s.clk1k}`,clk1:`${s.clk1}`,bcd:`${d[0]} / ${bits(d[0],4)}`,bcd0:`D0 ${d[0]}`,bcd1:`D1 ${d[1]}`,bcd2:`D2 ${d[2]}`,bcd3:`D3 ${d[3]}`,bcd4:String(s.bcd).padStart(4,'0'),
+     led:`${s.output?1:0}`,led4:bits(s.slowCount,4),decoder:`${d[0]} → 7SEG`,mux:`D${s.scan}: ${d[s.scan]}`,scan:`${bits(s.scan,2)}`,an:`D${s.scan} ON`,seg:`${d[s.scan]}`,digit:String(d[0]),display:String(s.bcd).padStart(4,'0'),
+     tick:'1 Hz',load:s.run?'RUN':'LOAD',select:`D${s.selected} ${Math.min(s.preset,9)}`,four:String(s.bcd).padStart(4,'0'),enable:s.run?'1':'0'};
+   return map[key]??key.toUpperCase();
+ }
+ const stages={
+   '1':[
+      ['master','100 MHz INPUT','sys','clock'],['fdce0','FDCE [0]','q0','clock'],['fdce1','FDCE [1]','q1','clock'],['dots','RIPPLE [2..25]','÷ 2 each','clock'],['fdce26','FDCE [26]','q26','slow'],['fdce27','FDCE [27]','q27','slow'],['out','LD0','led','output']],
+   '2':[['master','100 MHz INPUT','sys','clock'],['counter','28-BIT COUNTER','count28','clock'],['q27','Q27 TAP','q27','slow'],['counter4','4-BIT COUNTER','count4','slow'],['out','LD3..LD0','led4','output']],
+   '3':[['master','100 MHz INPUT','sys','clock'],['divA','÷ 50,000','clk1k','clock'],['oneK','1 kHz CLOCK','clk1k','slow'],['divB','÷ 500','clk1','slow'],['oneHz','1 Hz CLOCK','clk1','slow'],['out','LD0','led','output']],
+   '4':[['master','100 MHz INPUT','sys','clock'],['div','÷ 50,000,000','clk1','clock'],['digit','BCD COUNTER','bcd','slow'],['decode','BCD → 7SEG','decoder','bus'],['out','DISPLAY D0','digit','output']],
+   '5':[['master','100 MHz INPUT','sys','clock'],['div','÷ 50,000','clk1k','clock'],['d0','BCD D0','bcd0','bus'],['d1','BCD D1','bcd1','bus'],['d2','BCD D2','bcd2','bus'],['d3','BCD D3','bcd3','bus'],
+        ['scan','2-BIT SCAN','scan','slow'],['mux','4:1 BUS MUX','mux','bus'],['decode','7SEG DECODER','seg','bus'],['out','4-DIGIT DISPLAY','display','output']],
+   'Challenge':[['master','100 MHz INPUT','sys','clock'],['tick','1 Hz ENABLE','tick','slow'],['four','4 BCD DIGITS','four','bus'],['mux','4:1 BUS MUX','mux','bus'],['out','4-DIGIT DISPLAY','display','output'],
+        ['switch','SW0 SW2:1 SW7:4','select','input'],['load','RUN / LOAD','load','input'],['scan','1 kHz SCAN','scan','slow'],['decode','7SEG DECODER','seg','bus']]
+ };
+ const edges={
+  '1':[['master','fdce0','clock','clk 100 MHz'],['fdce0','fdce1','clock','Q0 50 MHz'],['fdce1','dots','clock','Q1 25 MHz'],['dots','fdce26','clock','ripple'],['fdce26','fdce27','slow','Q26 0.745 Hz'],['fdce27','out','output','Q27 0.3725 Hz']],
+  '2':[['master','counter','clock','clk'],['counter','q27','slow','Q27'],['q27','counter4','slow','posedge'],['counter4','out','bus','Q[3:0]']],
+  '3':[['master','divA','clock','clk'],['divA','oneK','slow','clk 1 kHz'],['oneK','divB','slow','1 kHz'],['divB','oneHz','slow','clk 1 Hz'],['oneHz','out','output','LD0']],
+  '4':[['master','div','clock','clk'],['div','digit','slow','1 Hz'],['digit','decode','bus','BCD[3:0]'],['decode','out','output','seg_cat[6:0]']],
+  '5':[['master','div','clock','clk'],['div','d0','slow','1 kHz'],['d0','d1','bus','carry 0'],['d1','d2','bus','carry 1'],['d2','d3','bus','carry 2'],['div','scan','slow','scan clock'],['scan','mux','slow','SEL[1:0]'],['d0','mux','bus','D0'],['d1','mux','bus','D1'],['d2','mux','bus','D2'],['d3','mux','bus','D3'],['mux','decode','bus','BCD[3:0]'],['decode','out','output','cathodes'],['scan','out','slow','anodes']],
+  'Challenge':[['master','tick','clock','clk'],['tick','four','slow','count enable'],['four','mux','bus','D3..D0'],['mux','out','output','segments'],['switch','load','input','SW0 / SEL'],['load','four','input','load digit'],['master','scan','clock','clk'],['scan','mux','slow','scan[1:0]'],['mux','decode','bus','BCD'],['decode','out','output','cathodes'],['scan','out','slow','anodes']]
+ };
+ // Positions are explicit for each topology. Desktop width 1080; mobile uses vertical reflow.
+ const desktop={
+  '1':[['master',5,85],['fdce0',160,85],['fdce1',315,85],['dots',470,85],['fdce26',625,85],['fdce27',780,85],['out',935,85]],
+  '2':[['master',35,85],['counter',250,85],['q27',465,85],['counter4',680,85],['out',895,85]],
+  '3':[['master',14,85],['divA',190,85],['oneK',365,85],['divB',540,85],['oneHz',715,85],['out',890,85]],
+  '4':[['master',30,85],['div',245,85],['digit',460,85],['decode',675,85],['out',890,85]],
+  '5':[['master',8,56],['div',188,56],['d0',368,56],['d1',548,56],['d2',728,56],['d3',908,56],['scan',188,244],['mux',438,244],['decode',688,244],['out',908,244]],
+  'Challenge':[['master',8,56],['tick',188,56],['four',368,56],['mux',548,56],['out',908,56],['switch',8,244],['load',188,244],['scan',548,244],['decode',728,244]]
+ };
+ const colors={clock:'#3b82f6',slow:'#22d3ee',bus:'#a78bfa',output:'#4ade80',input:'#eab308'};
+ const nW=135,nH=80;
+ let positions={},svgRoot=null;
+ const NS='http://www.w3.org/2000/svg';
+ function svgEl(tag,attrs,parent,text){const e=document.createElementNS(NS,tag);for(const [key,val] of Object.entries(attrs||{}))e.setAttribute(key,String(val));if(text!==undefined)e.textContent=text;(parent||svgRoot).append(e);return e;}
+ function activeFor(key,s){
+   if(key==='clock')return running;
+   if(key==='slow')return (kind==='1'||kind==='2')?!!s.q27:(kind==='3'||kind==='4')?!!s.clk1:(kind==='5')?!!s.clk1k:!!s.run;
+   if(key==='bus')return(kind==='2'?s.slowCount:s.bcd)!==0;
+   if(key==='output')return(kind==='1'||kind==='3')?!!s.output:(kind==='2')?!!s.slowCount:true;
+   if(key==='input')return !s.run;
+   return false;
+ }
+ function buildDiagram(){
+   svgRoot=$('#architecture');svgRoot.replaceChildren();const mobile=svgRoot.parentElement.clientWidth<mobileBreakpoint;
+   const ids=stages[kind];positions={};
+   const gap=18;
+   let maxY=0;
+   for(let i=0;i<ids.length;i++){
+     const item=ids[i];let x,y;
+     if(mobile){x=102;y=24+i*(nH+gap);}
+     else{const pos=desktop[kind].find(a=>a[0]===item[0]);x=pos[1];y=pos[2];}
+     positions[item[0]]={x,y,w:nW,h:nH};maxY=Math.max(maxY,y+nH);
+   }
+   svgRoot.setAttribute('viewBox',mobile?`0 0 340 ${maxY+28}`:`0 0 1080 ${Math.max(230,maxY+34)}`);
+   svgRoot.setAttribute('role','img');svgRoot.setAttribute('aria-label',`${document.title}: live circuit schematic`);
+   const drawingWires=svgEl('g',{},svgRoot);const drawingBlocks=svgEl('g',{},svgRoot);
+   function routedPath(a,b,edgeIndex){
+     if(mobile){
+       if(kind==='5' && /^d[0-3]$/.test(Object.keys(positions).find(k=>positions[k]===a)) && b===positions.mux){
+         const id=Object.keys(positions).find(k=>positions[k]===a);const channel=68-Number(id[1])*12;
+         return `M ${a.x} ${a.y+38} H ${channel} V ${b.y+40} H ${b.x}`;
+       }
+       if(kind==='5'&&a===positions.div&&b===positions.scan){
+         return `M ${a.x+nW} ${a.y+40} H 286 V ${b.y+40} H ${b.x+nW}`;
+       }
+       if(kind==='5'&&a===positions.scan&&b===positions.out){
+         return `M ${a.x+nW} ${a.y+40} H 296 V ${b.y+40} H ${b.x+nW}`;
+       }
+       if(kind==='Challenge'&&a===positions.master&&b===positions.scan){
+         return `M ${a.x+nW} ${a.y+40} H 284 V ${b.y+40} H ${b.x+nW}`;
+       }
+       if(kind==='Challenge'&&a===positions.switch&&b===positions.load){return `M 170 ${a.y+nH} V ${b.y}`;}
+       if(kind==='Challenge'&&a===positions.load&&b===positions.four){
+         return `M ${a.x} ${a.y+40} H 68 V ${b.y+40} H ${b.x}`;
+       }
+       if(a.y>b.y){
+         const lane=70+(edgeIndex%3)*12;
+         return `M ${a.x} ${a.y+38} H ${lane} V ${b.y+40} H ${b.x}`;
+       }
+       return `M 170 ${a.y+nH} V ${b.y}`;
+     }
+     const ax=a.x+a.w,ay=a.y+a.h/2,bx=b.x,by=b.y+b.h/2;
+     if(ay===by && ax<=bx) return `M ${ax} ${ay} H ${bx}`;
+     const sourceAbove=a.y<b.y;
+     const sx=a.x+a.w/2,sy=sourceAbove?a.y+nH:a.y;
+     const tx=b.x+b.w/2,ty=sourceAbove?b.y:b.y+nH;
+     const halfway=(sy+ty)/2;
+     const offset=(edgeIndex%5-2)*10;
+     const via=halfway+offset;
+     return `M ${sx} ${sy} V ${via} H ${tx} V ${ty}`;
+   }
+   edges[kind].forEach(([from,to,key,label],i)=>{
+     const a=positions[from],b=positions[to];
+     const d=routedPath(a,b,i),color=colors[key];
+     svgEl('path',{d,class:'wireBase'},drawingWires);
+     const path=svgEl('path',{d,class:'wireSignal',stroke:color,'data-wire':key},drawingWires);
+     path.dataset.from=from;path.dataset.to=to;
+     svgEl('title',{},path,`${label}: ${from} → ${to}`);
+     if(!mobile && !['5','Challenge'].includes(kind) && a.y===b.y && a.x+a.w<=b.x && (b.x-a.x-a.w)>75)
+       svgEl('text',{x:(a.x+a.w+b.x)/2,y:a.y+a.h/2-12,class:'wireLabel'},drawingWires,label);
+   });
+   ids.forEach(([id,title,value,color])=>{
+      const n=positions[id],g=svgEl('g',{'data-node':id},drawingBlocks);
+      svgEl('rect',{x:n.x,y:n.y,width:n.w,height:n.h,rx:8,class:'node',stroke:colors[color]},g);
+      let label=title;
+      // Fit labels without truncating node title; wrap at a semantic space if needed.
+      const line=label.length>15?label.replace(/ (?!.* )/,'|').split('|'):[label];
+      if(line.length===2){svgEl('text',{x:n.x+n.w/2,y:n.y+21,class:'nodeTitle'},g,line[0]);svgEl('text',{x:n.x+n.w/2,y:n.y+36,class:'nodeTitle'},g,line[1]);}
+      else svgEl('text',{x:n.x+n.w/2,y:n.y+28,class:'nodeTitle'},g,title);
+      svgEl('line',{x1:n.x+15,x2:n.x+n.w-15,y1:n.y+43,y2:n.y+43,stroke:'#334155','stroke-width':1},g);
+      svgEl('text',{x:n.x+n.w/2,y:n.y+64,class:'nodeValue','data-value':value},g,valueFor(value,state()));
+   });
+   renderDynamic();
+ }
+ function renderDynamic(){
+   if(!svgRoot)return;const s=state();
+   svgRoot.querySelectorAll('[data-value]').forEach(n=>n.textContent=valueFor(n.dataset.value,s));
+   svgRoot.querySelectorAll('[data-wire]').forEach(n=>{
+     const from=n.dataset.from,to=n.dataset.to,key=n.dataset.wire;
+     let on=activeFor(key,s);
+     if(kind==='5'){
+       if(from==='d0'&&to==='d1')on=s.dig[0]===9;
+       if(from==='d1'&&to==='d2')on=s.dig[0]===9&&s.dig[1]===9;
+       if(from==='d2'&&to==='d3')on=s.dig[0]===9&&s.dig[1]===9&&s.dig[2]===9;
+       if(/^d[0-3]$/.test(from)&&to==='mux')on=s.scan===Number(from.slice(1));
+       if(from==='scan'&&(to==='mux'||to==='out'))on=true;
+       if(from==='mux'||from==='decode')on=true;
+     }
+     if(kind==='Challenge'){
+       if(from==='switch'||from==='load')on=!s.run;
+       if(from==='tick'&&to==='four')on=s.run;
+       if(from==='scan'||from==='mux'||from==='decode')on=true;
+     }
+     const onValue=on;
+     n.classList.toggle('live',onValue);
+     n.classList.toggle('running',running);
+   });
+ }
+ const segs={a:'10,5 40,5 35,11 15,11',b:'42,7 47,12 47,42 41,47 38,40 38,15',c:'42,52 47,57 47,87 42,93 38,85 38,59',d:'10,95 40,95 35,89 15,89',e:'8,52 12,59 12,85 8,93 3,87 3,57',f:'8,7 12,15 12,40 8,47 3,42 3,12',g:'11,50 15,45 35,45 40,50 35,55 15,55'};
+ const digitPatterns=['abcdef','bc','abdeg','abcdg','bcfg','acdfg','acdefg','abc','abcdefg','abcdfg'];
+ function buildBoard(){
+   const body=$('#boardbody');body.replaceChildren();
+   const ledCount=kind==='2'?4:['1','3'].includes(kind)?1:0;
+   if(ledCount){
+     const row=document.createElement('div');row.className='ledbank';row.setAttribute('aria-label',`${ledCount} connected FPGA LED outputs`);
+     for(let i=ledCount-1;i>=0;i--){const unit=document.createElement('div');unit.className='ledUnit';unit.dataset.led=i;unit.innerHTML='<span class="ledLamp"></span><span>LD'+i+'</span>';row.append(unit);}body.append(row);
+   }
+   if(['4','5','Challenge'].includes(kind)){
+     const row=document.createElement('div');row.className='displayWrap';row.setAttribute('aria-label','Connected seven-segment display');
+     for(let i=3;i>=0;i--){if(kind==='4'&&i!==0)continue;
+       const box=document.createElement('div');box.className='digitBox';box.innerHTML=`<svg class="displayDigit" viewBox="0 0 50 100" aria-label="Digit D${i}">${Object.entries(segs).map(([k,v])=>`<polygon class="seg" data-seg="${k}" points="${v}"/>`).join('')}</svg><div class="digitLabel">D${i}</div>`;box.dataset.digit=i;row.append(box);
+     }body.append(row);
+   }
+   if(kind==='Challenge'){
+     const bank=document.createElement('div');bank.className='switchBank';bank.setAttribute('aria-label','Seven functional slide switches');
+     for(const i of [7,6,5,4,2,1,0]){
+       const button=document.createElement('button');button.type='button';button.className='swButton';button.dataset.sw=i;button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`SW${i}`);
+       const role=i===0?'RUN/LOAD':[1,2].includes(i)?'DIGIT':'BCD DATA';
+       button.innerHTML=`<span>SW${i}</span><span class="switchTrack"><span class="switchThumb"></span></span><span class="swRole">${role}</span>`;
+       button.addEventListener('click',()=>{sw[i]^=1;button.classList.toggle('on',!!sw[i]);button.setAttribute('aria-pressed',String(!!sw[i]));loadDigit();render();});
+       bank.append(button);
+     }body.append(bank);
+   }
+   const meta=$('#boardmeta');meta.replaceChildren();
+   const tags=kind==='1'?['LD0 ← Q27']:kind==='2'?['LD3..LD0 ← secondary counter']:kind==='3'?['LD0 ← 1 Hz']:kind==='4'?['D0 only','active-low seg_cat / seg_an']:kind==='5'?['Four multiplexed digits','1 kHz scan clock']:['SW0: run/load','SW1..2: digit','SW4..7: BCD','SW3 unused'];
+   for(const tag of tags){const s=document.createElement('span');s.textContent=tag;meta.append(s);}
+ }
+ function render(){
+   const s=state();
+   $('#time').textContent=f2(time)+' s';
+   $('#value').textContent=kind==='1'?`Q27 ${s.q27}`:kind==='2'?bits(s.slowCount,4):kind==='3'?`1 Hz ${s.clk1}`:kind==='4'?String(s.dig[0]):String(s.bcd).padStart(4,'0');
+   $('#status').textContent=kind==='Challenge'?(s.run?'RUN':'LOAD'):kind==='2'?`Q27 ${s.q27?'HIGH':'LOW'}`:kind==='1'?`Q27 ${s.q27?'HIGH':'LOW'}`:kind==='3'?`1 kHz ${s.clk1k?'HIGH':'LOW'}`:kind==='4'?`BCD ${s.dig[0]}`:`SCAN D${s.scan}`;
+   $$('.ledUnit').forEach(unit=>unit.querySelector('.ledLamp').classList.toggle('lit',!!((s.output>>Number(unit.dataset.led))&1)));
+   $$('.digitBox').forEach(box=>{
+     const digit=s.dig[Number(box.dataset.digit)];
+     box.querySelectorAll('.seg').forEach(seg=>seg.classList.toggle('on',digitPatterns[digit].includes(seg.dataset.seg)));
+   });
+   $$('#signalRows .sigRow').forEach(row=>{
+     const key=row.dataset.signal;const val=valueFor(key,s);
+     row.querySelector('.sigValue').textContent=val;
+     const tr=row.querySelector('.sigFill');
+     const percent=key==='count28'?((s.cycles%2**28)/2**28*100):key==='scan'?((s.scan+1)*25):key==='bcd4'||key==='four'||key==='display'?(s.bcd/10000*100):['clk1k','clk1','q27','q26'].includes(key)?Number(val)*100:(time*10%100);
+     tr.style.width=Math.max(0,Math.min(100,percent))+'%';
+   });
+   renderDynamic();
+ }
+ $('#play').addEventListener('click',()=>{running=!running;$('#play').textContent=running?'Pause':'Run';$('#play').setAttribute('aria-pressed',String(running));render();});
+ $('#step').addEventListener('click',()=>advance(step));
+ $('#reset').addEventListener('click',()=>{running=false;time=0;countValue=0;sw.fill(0);$$('.swButton').forEach(btn=>{btn.classList.remove('on');btn.setAttribute('aria-pressed','false')});$('#play').textContent='Run';$('#play').setAttribute('aria-pressed','false');render();});
+ $('#speed').addEventListener('change',e=>{speed=Number(e.target.value);});
+ $$('.tab').forEach(button=>button.addEventListener('click',()=>{
+   $$('.tab').forEach(b=>b.setAttribute('aria-selected',String(button===b)));
+   $$('.tabpane').forEach(p=>p.hidden=p.id!==button.dataset.tab);
+ }));
+ $('#copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#code').textContent);$('#copy').textContent='Copied';}catch{$('#copy').textContent='Select code to copy';}});
+ let oldMobile=null;function resize(){const mobile=$('#architecture').parentElement.clientWidth<mobileBreakpoint;if(mobile!==oldMobile){oldMobile=mobile;buildDiagram();}}
+ if(typeof ResizeObserver!=='undefined'){new ResizeObserver(resize).observe($('#architecture').parentElement);}else window.addEventListener('resize',resize);
+ buildBoard();resize();render();requestAnimationFrame(frame);
 })();
 </script></body></html>
