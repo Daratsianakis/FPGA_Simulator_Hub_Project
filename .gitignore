@@ -1,0 +1,19 @@
+# macOS metadata
+.DS_Store
+**/.DS_Store
+._*
+**/._*
+__MACOSX/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local editor settings
+.vscode/
+.idea/
+
+# Local logs and temporary files
+*.log
+*.swp
+*.swo

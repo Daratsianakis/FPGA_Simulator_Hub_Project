@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-bit PIPO Register & MUX Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+        
+        /* Interactive Elements */
+        .switch-track { width: 24px; height: 60px; background-color: #1e293b; border-radius: 4px; position: relative; border: 2px solid #334155; cursor: pointer; }
+        .switch-thumb { width: 20px; height: 26px; background-color: #94a3b8; position: absolute; left: 0; transition: all 0.2s ease-in-out; border-radius: 2px; }
+        .switch-on { top: 0; background-color: #4ade80; }
+        .switch-off { bottom: 0; background-color: #64748b; }
+        
+        .btn { width: 44px; height: 44px; border-radius: 50%; background-color: #ef4444; border: 4px solid #7f1d1d; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .btn:active, .btn-pressed { transform: scale(0.9); background-color: #dc2626; box-shadow: inset 0 3px 5px rgba(0,0,0,0.5); }
+        
+        /* Discrete LEDs */
+        .led { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #064e3b; transition: all 0.1s; }
+        .led-on { background-color: #22c55e; box-shadow: 0 0 10px 2px #22c55e; border-color: #86efac; }
+        .led-off { background-color: #064e3b; box-shadow: none; }
+        .led-changed { box-shadow: 0 0 15px 4px #fbbf24; border-color: #fcd34d; }
+        
+        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; }
+
+        /* Diagram Animations & Styles */
+        .diag-wire { fill: none; stroke-width: 2; transition: all 0.2s ease; }
+        .wire-idle { stroke: #334155; }
+        .wire-blue { stroke: #3b82f6 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #3b82f6); }
+        .wire-orange { stroke: #f97316 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #f97316); }
+        .wire-yellow { stroke: #fbbf24 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #fbbf24); }
+        .wire-green { stroke: #4ade80 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #4ade80); }
+        .wire-purple { stroke: #c084fc !important; stroke-width: 3; filter: drop-shadow(0 0 4px #c084fc); }
+        .wire-cyan { stroke: #22d3ee !important; stroke-width: 3; filter: drop-shadow(0 0 4px #22d3ee); }
+
+        .box-idle { fill: #1e293b; stroke: #475569; transition: all 0.2s ease; }
+        .fill-blue { fill: #1e3a8a !important; stroke: #3b82f6 !important; filter: drop-shadow(0 0 4px #3b82f6); }
+        .fill-orange { fill: #7c2d12 !important; stroke: #f97316 !important; filter: drop-shadow(0 0 4px #f97316); }
+        .fill-yellow { fill: #713f12 !important; stroke: #fbbf24 !important; filter: drop-shadow(0 0 4px #fbbf24); }
+        .fill-cyan { fill: #083344 !important; stroke: #22d3ee !important; filter: drop-shadow(0 0 4px #22d3ee); }
+        .fill-purple { fill: #581c87 !important; stroke: #c084fc !important; filter: drop-shadow(0 0 4px #c084fc); }
+
+        .ff-box { fill: #0f172a; stroke: #475569; stroke-width: 2; transition: all 0.2s; }
+        .ff-box.clocked { fill: #1e3a8a; stroke: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+        
+        .ff-text { fill: #94a3b8; font-family: monospace; font-size: 10px; user-select: none; }
+        .ff-val { fill: #4ade80; font-family: monospace; font-size: 16px; font-weight: bold; user-select: none; transition: fill 0.2s; }
+        .ff-val.changed { fill: #fbbf24; }
+        
+        /* Tab Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        .tab-btn:hover:not(.active) { color: #e2e8f0; }
+
+        /* Legend overlay box */
+        .legend-box { background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; border-radius: 6px; padding: 8px; z-index: 10; }
+        
+        /* Mode Toggle specific */
+        .mode-btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: bold; font-size: 0.875rem; transition: all 0.2s; border: 1px solid transparent; }
+        .mode-btn-active { background-color: #2563eb; color: #ffffff; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .mode-btn-inactive { background-color: #334155; color: #94a3b8; border-color: #475569; }
+        .mode-btn-inactive:hover { background-color: #475569; color: #f8fafc; }
+    </style>
+</head>
+<body class="flex flex-col items-center p-6 min-h-screen">
+    <div class="max-w-7xl w-full">
+        <!-- Header -->
+        <header class="mb-4 flex justify-between items-end border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 mb-1">8-bit PIPO Register & MUX (Req 4)</h1>
+                <p class="text-slate-400 text-sm">Clear Architecture View: Sequential PIPO Register paired with 2:1 Multiplexer.</p>
+            </div>
+            
+            <div class="flex flex-col gap-2 items-end">
+                <a href="../index.html?project=Project_7" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold transition-colors shadow-lg border border-slate-500 text-sm whitespace-nowrap text-center flex items-center justify-center h-[40px] mb-2">
+                    &#8592; Back to Simulations
+                </a>
+                <div class="flex gap-2 bg-slate-800 p-1 rounded-lg border border-slate-600 shadow-inner">
+                    <button onclick="setMode('btn_clock')" id="mode-btn-clock" class="mode-btn mode-btn-active">Mode 1: Button Clock</button>
+                    <button onclick="setMode('clk_enable')" id="mode-btn-enable" class="mode-btn mode-btn-inactive">Mode 2: Clock Enable</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-col gap-6 w-full pb-10">
+            
+            <!-- Diagram Panel (Full Width) -->
+            <div class="panel p-4 flex flex-col items-center shadow-xl relative w-full">
+                <!-- Speed & Status Bar -->
+                <div class="w-full flex justify-between items-center mb-2 px-2">
+                    <div class="flex gap-2">
+                        <div class="flex items-center gap-3 bg-slate-900 p-2 rounded border border-slate-700">
+                            <label class="text-xs font-bold text-slate-400">SYSTEM CLK:</label>
+                            <div class="w-3 h-3 rounded-full bg-slate-600" id="clk-indicator"></div>
+                        </div>
+                        <button onclick="singleStepBtn0()" id="manual-clk-btn" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded text-xs font-bold transition-colors shadow-lg">Pulse BTN0</button>
+                    </div>
+                    
+                    <div class="bg-slate-900 p-2 px-4 rounded border border-slate-700 flex gap-6">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">SW Input (I0)</span>
+                            <span id="sw-hex" class="font-mono font-bold text-base text-blue-400">8'h00</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">PIPO Stored (I1)</span>
+                            <span id="pipo-hex" class="font-mono font-bold text-base text-orange-400">8'h00</span>
+                        </div>
+                        <div class="border-l border-slate-700 pl-6">
+                            <span class="text-[10px] text-slate-400 block uppercase">MUX Output</span>
+                            <span id="led-hex" class="font-mono font-bold text-base text-green-400">8'h00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic SVG Architecture Diagram -->
+                <div class="w-full overflow-hidden bg-[#0a0f1c] border border-slate-700 rounded shadow-inner relative" style="height: 550px;">
+                    
+                    <!-- Floating Legend -->
+                    <div class="absolute top-4 left-4 legend-box shadow-lg">
+                        <div class="flex flex-col gap-2 text-xs font-mono text-slate-300">
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-sm"></div> SW Data (I0)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-orange-500 rounded-sm"></div> PIPO Data (I1)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-cyan-400 rounded-sm"></div> BTN0 (Clock/En)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-purple-400 rounded-sm"></div> BTN1 (Mux Sel)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-400 rounded-sm"></div> MUX Out to LEDs</div>
+                        </div>
+                    </div>
+
+                    <svg viewBox="0 0 1100 550" class="w-full h-full" id="arch-svg" preserveAspectRatio="xMidYMid meet">
+                        <!-- SVG Content populated by JS for precision -->
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Physical Blackboard Panel (Full Width) -->
+            <div class="panel p-6 shadow-xl relative bg-[#18212f] w-full">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest absolute top-2 left-4">Physical Blackboard Mapping</h3>
+                
+                <div class="mt-4 flex flex-col items-center gap-8">
+                    
+                    <!-- LEDs Row -->
+                    <div class="w-full flex justify-center items-end px-4 border-b border-slate-700/50 pb-6 gap-12">
+                        <!-- Discrete LEDs 7 to 0 -->
+                        <div class="flex gap-6">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-1.5">
+                                            <div class="led led-off" id="phys-led-${i}"></div>
+                                            <span class="text-[10px] font-bold font-mono text-green-400">LD${i}</span>
+                                            <span class="text-[9px] text-slate-500 font-mono">[${i}]</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Row -->
+                    <div class="w-full flex justify-center gap-24 px-8">
+                        <!-- Buttons -->
+                        <div class="flex gap-12">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn1" onmousedown="pressBtn(1)" onmouseup="releaseBtn(1)" onmouseleave="releaseBtn(1)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-purple-400">BTN1</span>
+                                    <span class="text-[10px] text-slate-400">MUX Select</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn0" onmousedown="pressBtn(0)" onmouseup="releaseBtn(0)" onmouseleave="releaseBtn(0)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-cyan-400">BTN0</span>
+                                    <span class="text-[10px] text-slate-400" id="phys-btn0-label">Clock</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Switches -->
+                        <div class="flex gap-4">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-2 mx-1">
+                                            <div class="switch-track" onclick="toggleSwitch(${i})">
+                                                <div class="switch-thumb switch-off" id="sw-${i}"></div>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono font-bold">SW${i}</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Tabs: Code & Explanations (Full Width at Bottom) -->
+            <div class="panel flex flex-col w-full shadow-xl">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-700 bg-slate-900 rounded-t-xl px-2 pt-2">
+                    <button class="tab-btn active px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-operation')">Operation Documentation</button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-code')">Verilog Code</button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-6">
+                    
+                    <!-- Operation Tab -->
+                    <div id="tab-operation" class="tab-content active text-sm text-slate-300">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-xl font-bold text-white mb-2" id="desc-title">Implementation 1: Button as Clock</h3>
+                            <p class="mb-4 text-base" id="desc-text">In this design, <code>always @(posedge btn[0])</code> is used. The register only captures the switch states at the exact moment BTN0 is pressed (transitions from 0 to 1). Holding the button down does nothing to the register.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-cyan-400 block mb-2 text-lg">PIPO Register (BTN0)</strong>
+                                    <span class="text-sm">The 8-bit Parallel-In Parallel-Out register captures the state of all 8 switches. Depending on the mode, BTN0 acts either as a direct noisy clock, or a clean synchronous Clock Enable.</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-purple-400 block mb-2 text-lg">2:1 Multiplexer (BTN1)</strong>
+                                    <ul class="text-sm space-y-1 list-disc pl-4">
+                                        <li><strong>BTN1 = 0</strong>: Passes the raw SW data (I0) directly to LEDs.</li>
+                                        <li><strong>BTN1 = 1</strong>: Passes the stored PIPO data (I1) to LEDs.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Tab -->
+                    <div id="tab-code" class="tab-content">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase mb-3">Verilog Implementation</h3>
+                            <pre class="text-sm font-mono text-green-400 leading-relaxed bg-slate-900 p-6 rounded border border-slate-700 overflow-x-auto">
+<span class="text-slate-500">// 1. Multiplexer Logic</span>
+<span class="text-blue-400">assign</span> led = btn[1] ? stored_data : sw;
+
+<span class="text-slate-500">// 2. Sequential Register Logic</span>
+<span id="code-snippet">
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> btn[0]) <span class="text-blue-400">begin</span>
+    stored_data <= sw;
+<span class="text-blue-400">end</span>
+</span>
+                            </pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Data State
+        let swVal = 0x00;
+        let pipoVal = 0x00;
+        let ledVal = 0x00;
+        
+        let mode = 'btn_clock'; // 'btn_clock' or 'clk_enable'
+        let btn0Down = false;
+        let btn1Down = false;
+        
+        let sysClkState = 0;
+        let sysClkInterval = null;
+
+        function initSVG() {
+            const svg = document.getElementById('arch-svg');
+            let content = '';
+
+            // --- SW Bus (I0) ---
+            content += '<path id="wire-sw-main" d="M 80 80 L 80 440" class="diag-wire wire-blue"/>';
+            content += '<text x="80" y="70" text-anchor="middle" class="ff-text font-bold text-blue-400">SW[7:0]</text>';
+
+            // --- PIPO Data Input Taps ---
+            for(let i=0; i<=7; i++) {
+                let x = 160 + ((7-i) * 45); 
+                content += `<path d="M 80 100 L ${x} 100 L ${x} 130" class="diag-wire wire-blue"/>`;
+            }
+
+            // --- PIPO Register FFs ---
+            content += '<rect x="140" y="110" width="370" height="90" rx="4" class="box-idle" stroke-dasharray="4"/>';
+            content += '<text x="325" y="125" text-anchor="middle" class="ff-text font-bold text-white">8-BIT PIPO REGISTER</text>';
+            content += `<text id="svg-reg-logic" x="325" y="215" text-anchor="middle" class="ff-text font-bold text-cyan-400">always @(posedge btn0)</text>`;
+            
+            for(let i=0; i<=7; i++) {
+                let x = 160 + ((7-i) * 45);
+                content += `<rect id="pipo-box-${i}" x="${x-15}" y="135" width="30" height="50" class="ff-box" rx="2" />`;
+                content += `<text x="${x}" y="150" text-anchor="middle" class="ff-text">${i}</text>`;
+                content += `<text id="pipo-val-${i}" x="${x}" y="170" text-anchor="middle" class="ff-val">0</text>`;
+                
+                // Clock tap
+                content += `<path id="wire-clk-tap-${i}" d="M ${x-15} 240 L ${x-15} 170" class="diag-wire wire-idle"/>`;
+                content += `<polygon points="${x-20},170 ${x-10},170 ${x-15},165" fill="#475569"/>`;
+
+                // PIPO Output Data
+                content += `<path id="wire-pipo-out-${i}" d="M ${x} 185 L ${x} 270" class="diag-wire wire-orange"/>`;
+            }
+
+            // --- Clock/Enable Bus (BTN0) ---
+            content += '<path id="wire-btn0" d="M 80 240 L 470 240" class="diag-wire wire-idle"/>';
+            content += `<text id="svg-btn0-label" x="80" y="235" text-anchor="middle" class="ff-text font-bold" fill="#22d3ee">BTN0 Clock</text>`;
+            
+            // --- System Clock Line (for Mode 2) ---
+            content += '<path id="wire-sysclk" d="M 80 260 L 470 260" class="diag-wire wire-idle opacity-0 transition-opacity duration-300"/>';
+            content += `<text id="svg-sysclk-label" x="80" y="255" text-anchor="middle" class="ff-text font-bold opacity-0 transition-opacity duration-300" fill="#4ade80">System CLK</text>`;
+
+            // --- PIPO Output Aggregation (I1) ---
+            content += '<path d="M 160 270 L 475 270 L 475 320 L 720 320" class="diag-wire wire-orange"/>';
+            content += '<polygon points="715,315 715,325 720,320" fill="#f97316"/>';
+            content += '<text x="560" y="315" text-anchor="middle" class="ff-text font-bold text-orange-400">stored_data[7:0] (I1)</text>';
+
+            // --- SW Bypass to MUX (I0) ---
+            content += '<path d="M 80 440 L 720 440" class="diag-wire wire-blue"/>';
+            content += '<polygon points="715,435 715,445 720,440" fill="#3b82f6"/>';
+            content += '<text x="400" y="435" text-anchor="middle" class="ff-text font-bold text-blue-400">sw[7:0] Bypass (I0)</text>';
+
+            // --- 2:1 MULTIPLEXER ---
+            // Draw trapezium for MUX
+            content += `<polygon id="mux-box" points="720,290 840,320 840,440 720,470" class="box-idle"/>`;
+            content += '<text x="780" y="380" text-anchor="middle" class="ff-text font-bold text-white text-lg">2:1</text>';
+            content += '<text x="780" y="395" text-anchor="middle" class="ff-text font-bold text-white text-lg">MUX</text>';
+            content += '<text x="735" y="325" text-anchor="middle" class="ff-text font-bold text-orange-400">I1</text>';
+            content += '<text x="735" y="445" text-anchor="middle" class="ff-text font-bold text-blue-400">I0</text>';
+
+            // Mux Select (BTN1)
+            content += '<path id="wire-btn1" d="M 780 490 L 780 425" class="diag-wire wire-idle"/>';
+            content += '<polygon points="775,430 785,430 780,425" fill="#475569"/>';
+            content += '<text x="780" y="505" text-anchor="middle" class="ff-text font-bold text-purple-400">BTN1 (Select)</text>';
+
+            // --- MUX Output to LEDs ---
+            content += '<path id="wire-mux-out" d="M 840 380 L 920 380" class="diag-wire wire-idle"/>';
+            content += '<text x="880" y="375" text-anchor="middle" class="ff-text font-bold text-green-400">LED[7:0]</text>';
+
+            for(let i=0; i<=7; i++) {
+                let y = 140 + ((7-i) * 45); 
+                content += `<path id="wire-led-tap-${i}" d="M 920 380 L 920 ${y} L 950 ${y}" class="diag-wire wire-idle"/>`;
+                
+                content += `<rect id="led-box-${i}" x="950" y="${y-10}" width="40" height="20" class="box-idle" rx="2"/>`;
+                content += `<text x="970" y="${y+4}" text-anchor="middle" class="ff-text font-bold text-green-400">LD${i}</text>`;
+                content += `<text id="shifter-val-${i}" x="1010" y="${y+5}" text-anchor="middle" class="ff-val">0</text>`;
+            }
+
+            svg.innerHTML = content;
+        }
+
+        function updateCombinational() {
+            // MUX Logic
+            ledVal = btn1Down ? pipoVal : swVal;
+
+            // UI Text Updates
+            document.getElementById('sw-hex').textContent = `8'h${swVal.toString(16).padStart(2,'0').toUpperCase()}`;
+            document.getElementById('pipo-hex').textContent = `8'h${pipoVal.toString(16).padStart(2,'0').toUpperCase()}`;
+            document.getElementById('led-hex').textContent = `8'h${ledVal.toString(16).padStart(2,'0').toUpperCase()}`;
+
+            // Wire Colors
+            let muxOutColor = btn1Down ? 'wire-orange' : 'wire-blue';
+            let muxBoxClass = btn1Down ? 'fill-orange' : 'fill-blue';
+            let ledBoxClass = btn1Down ? 'fill-orange' : 'fill-blue';
+
+            document.getElementById('wire-mux-out').className = `diag-wire ${ledVal ? muxOutColor : 'wire-idle'}`;
+            document.getElementById('mux-box').className = `box-idle ${muxBoxClass}`;
+
+            for(let i=0; i<8; i++) {
+                let bit = (ledVal >> i) & 1;
+                
+                // SVG Shifter Output Text & Wires
+                let svgValEl = document.getElementById(`shifter-val-${i}`);
+                if(svgValEl) svgValEl.textContent = bit;
+
+                let tapWire = document.getElementById(`wire-led-tap-${i}`);
+                if(tapWire) tapWire.className = `diag-wire ${bit ? muxOutColor : 'wire-idle'}`;
+                
+                let ledBox = document.getElementById(`led-box-${i}`);
+                if(ledBox) ledBox.className = `box-idle ${bit ? ledBoxClass : ''}`;
+
+                // Physical LED
+                let physLed = document.getElementById(`phys-led-${i}`);
+                if (physLed) physLed.className = bit ? "led led-on" : "led led-off";
+            }
+        }
+
+        function flashClockLines() {
+            let oldVal = pipoVal;
+            pipoVal = swVal; // Capture Data
+            
+            // Flash Wires
+            let wireBtn0 = document.getElementById('wire-btn0');
+            wireBtn0.classList.remove('wire-idle');
+            wireBtn0.classList.add('wire-cyan');
+            
+            for(let i=0; i<=7; i++) {
+                let tap = document.getElementById(`wire-clk-tap-${i}`);
+                tap.classList.remove('wire-idle');
+                tap.classList.add('wire-cyan');
+
+                let box = document.getElementById(`pipo-box-${i}`);
+                box.classList.remove('box-idle');
+                box.classList.add('ff-box', 'clocked');
+                
+                let valEl = document.getElementById(`pipo-val-${i}`);
+                let oldBit = (oldVal >> i) & 1;
+                let newBit = (pipoVal >> i) & 1;
+                valEl.textContent = newBit;
+                if(oldBit !== newBit) {
+                    valEl.classList.add('changed');
+                    setTimeout(() => valEl.classList.remove('changed'), 200);
+                }
+            }
+
+            setTimeout(() => {
+                wireBtn0.classList.remove('wire-cyan');
+                wireBtn0.classList.add('wire-idle');
+                for(let i=0; i<=7; i++) {
+                    document.getElementById(`wire-clk-tap-${i}`).classList.remove('wire-cyan');
+                    document.getElementById(`wire-clk-tap-${i}`).classList.add('wire-idle');
+                    document.getElementById(`pipo-box-${i}`).classList.remove('clocked');
+                }
+            }, 150);
+
+            updateCombinational();
+        }
+
+        function toggleSwitch(idx) {
+            let mask = 1 << idx;
+            swVal ^= mask;
+            let swEl = document.getElementById(`sw-${idx}`);
+            if((swVal >> idx) & 1) {
+                swEl.classList.remove('switch-off');
+                swEl.classList.add('switch-on');
+            } else {
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+            }
+            updateCombinational();
+        }
+
+        function pressBtn(idx) {
+            if(idx === 0 && !btn0Down) {
+                btn0Down = true;
+                document.getElementById(`btn0`).classList.add('btn-pressed');
+                document.getElementById('wire-btn0').classList.replace('wire-idle', 'wire-cyan');
+                
+                if (mode === 'btn_clock') {
+                    flashClockLines(); // Direct posedge
+                }
+            }
+            if(idx === 1 && !btn1Down) {
+                btn1Down = true;
+                document.getElementById(`btn1`).classList.add('btn-pressed');
+                document.getElementById('wire-btn1').classList.replace('wire-idle', 'wire-purple');
+                updateCombinational();
+            }
+        }
+
+        function releaseBtn(idx) {
+            if(idx === 0) {
+                btn0Down = false;
+                document.getElementById(`btn0`).classList.remove('btn-pressed');
+                document.getElementById('wire-btn0').classList.replace('wire-cyan', 'wire-idle');
+            }
+            if(idx === 1) {
+                btn1Down = false;
+                document.getElementById(`btn1`).classList.remove('btn-pressed');
+                document.getElementById('wire-btn1').classList.replace('wire-purple', 'wire-idle');
+                updateCombinational();
+            }
+        }
+
+        // For Mode 2: System clock loop
+        function tickSystemClock() {
+            sysClkState = 1 - sysClkState;
+            let ind = document.getElementById('clk-indicator');
+            ind.style.backgroundColor = sysClkState ? '#4ade80' : '#475569';
+            ind.style.boxShadow = sysClkState ? '0 0 8px #4ade80' : 'none';
+            
+            // Flash visual sysclk wire
+            if (mode === 'clk_enable') {
+                let wc = document.getElementById('wire-sysclk');
+                wc.classList.replace('wire-idle', 'wire-green');
+                setTimeout(() => wc.classList.replace('wire-green', 'wire-idle'), 50);
+            }
+
+            // If it's a rising edge (sysClkState == 1) and Enable (BTN0) is high
+            if(sysClkState === 1 && btn0Down && mode === 'clk_enable') {
+                flashClockLines();
+            }
+        }
+
+        function startSysClock() {
+            if(sysClkInterval) clearInterval(sysClkInterval);
+            sysClkInterval = setInterval(tickSystemClock, 250); // fast continuous clock
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            
+            document.getElementById('mode-btn-clock').className = `mode-btn ${mode === 'btn_clock' ? 'mode-btn-active' : 'mode-btn-inactive'}`;
+            document.getElementById('mode-btn-enable').className = `mode-btn ${mode === 'clk_enable' ? 'mode-btn-active' : 'mode-btn-inactive'}`;
+            
+            let sysWire = document.getElementById('wire-sysclk');
+            let sysLabel = document.getElementById('svg-sysclk-label');
+
+            if(mode === 'btn_clock') {
+                document.getElementById('svg-reg-logic').innerText = "always @(posedge btn0)";
+                document.getElementById('svg-btn0-label').innerText = "BTN0 Clock";
+                document.getElementById('phys-btn0-label').innerText = "Clock";
+                
+                document.getElementById('desc-title').innerText = "Implementation 1: Button as Clock";
+                document.getElementById('desc-text').innerHTML = "In this design, <code>always @(posedge btn[0])</code> is used. The register only captures the switch states at the exact moment BTN0 is pressed (transitions from 0 to 1). Holding the button down does nothing to the register.";
+                document.getElementById('code-snippet').innerHTML = `<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> btn[0]) <span class="text-blue-400">begin</span>
+    stored_data <= sw;
+<span class="text-blue-400">end</span>`;
+                
+                sysWire.classList.add('opacity-0');
+                sysLabel.classList.add('opacity-0');
+            } else {
+                document.getElementById('svg-reg-logic').innerText = "always @(posedge clk)";
+                document.getElementById('svg-btn0-label').innerText = "BTN0 Enable";
+                document.getElementById('phys-btn0-label').innerText = "Enable";
+                
+                document.getElementById('desc-title').innerText = "Implementation 2: Proper Clock with Enable";
+                document.getElementById('desc-text').innerHTML = "In this design, the FPGA's 100MHz clock drives the register: <code>always @(posedge clk)</code>. BTN0 acts as a clock enable. While BTN0 is held down, the register continuously loads the switch states on every clock cycle, effectively becoming 'transparent'.";
+                document.getElementById('code-snippet').innerHTML = `<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> clk) <span class="text-blue-400">begin</span>
+    <span class="text-blue-400">if</span> (btn[0]) <span class="text-blue-400">begin</span>
+        stored_data <= sw;
+    <span class="text-blue-400">end</span>
+<span class="text-blue-400">end</span>`;
+
+                sysWire.classList.remove('opacity-0');
+                sysLabel.classList.remove('opacity-0');
+            }
+            
+            pipoVal = 0x00;
+            updateCombinational();
+        }
+
+        // Just for simulating a manual press for those without a mouse
+        function singleStepBtn0() {
+            pressBtn(0);
+            setTimeout(() => releaseBtn(0), 150);
+        }
+
+        function resetReg() {
+            pipoVal = 0x00;
+            swVal = 0x00;
+            btn0Down = false;
+            btn1Down = false;
+            for(let i=0; i<=7; i++) {
+                let swEl = document.getElementById(`sw-${i}`);
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+                document.getElementById(`pipo-val-${i}`).textContent = "0";
+            }
+            document.getElementById(`btn0`).classList.remove('btn-pressed');
+            document.getElementById(`btn1`).classList.remove('btn-pressed');
+            updateCombinational();
+        }
+
+        window.onload = () => {
+            initSVG();
+            setMode('btn_clock');
+            startSysClock();
+        };
+    </script>
+</body>
+</html>

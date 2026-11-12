@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-bit SIPO Shift Register - High Clarity Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+        
+        /* Interactive Elements */
+        .btn { width: 44px; height: 44px; border-radius: 50%; background-color: #ef4444; border: 4px solid #7f1d1d; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .btn:active, .btn-pressed { transform: scale(0.9); background-color: #dc2626; box-shadow: inset 0 3px 5px rgba(0,0,0,0.5); }
+        
+        /* Discrete LEDs */
+        .led { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #064e3b; transition: all 0.1s; }
+        .led-on { background-color: #22c55e; box-shadow: 0 0 10px 2px #22c55e; border-color: #86efac; }
+        .led-off { background-color: #064e3b; box-shadow: none; }
+        .led-changed { box-shadow: 0 0 15px 4px #fbbf24; border-color: #fcd34d; }
+        
+        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; }
+
+        /* Diagram Animations & Styles */
+        .diag-wire { fill: none; stroke-width: 2; transition: all 0.2s ease; }
+        .wire-idle { stroke: #334155; }
+        .wire-blue { stroke: #3b82f6 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #3b82f6); }
+        .wire-yellow { stroke: #fbbf24 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #fbbf24); }
+        .wire-green { stroke: #4ade80 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #4ade80); }
+
+        .box-idle { fill: #1e293b; stroke: #475569; transition: all 0.2s ease; }
+        .fill-blue { fill: #1e3a8a !important; stroke: #3b82f6 !important; filter: drop-shadow(0 0 4px #3b82f6); }
+        .fill-yellow { fill: #713f12 !important; stroke: #fbbf24 !important; filter: drop-shadow(0 0 4px #fbbf24); }
+
+        .ff-box { fill: #0f172a; stroke: #475569; stroke-width: 2; transition: all 0.2s; }
+        .ff-box.shifted { fill: #713f12; stroke: #fbbf24; }
+        
+        .ff-text { fill: #94a3b8; font-family: monospace; font-size: 10px; user-select: none; }
+        .ff-val { fill: #4ade80; font-family: monospace; font-size: 16px; font-weight: bold; user-select: none; transition: fill 0.2s; }
+        .ff-val.changed { fill: #fbbf24; }
+        
+        /* Tab Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        .tab-btn:hover:not(.active) { color: #e2e8f0; }
+
+        /* Legend overlay box */
+        .legend-box { background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; border-radius: 6px; padding: 8px; z-index: 10; }
+    </style>
+</head>
+<body class="flex flex-col items-center p-6 min-h-screen">
+    <div class="max-w-7xl w-full">
+        <!-- Header -->
+        <header class="mb-4 flex justify-between items-end border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 mb-1">8-bit SIPO Shift Register (Req 6)</h1>
+                <p class="text-slate-400 text-sm">Clear Architecture View: Serial-In Parallel-Out design driven by a slow divided clock.</p>
+            </div>
+            <div class="flex flex-col gap-2 items-end">
+                <a href="../index.html?project=Project_7" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold transition-colors shadow-lg border border-slate-500 text-sm whitespace-nowrap text-center flex items-center justify-center h-[40px] mb-2">
+                    &#8592; Back to Simulations
+                </a>
+                <div class="flex gap-2"></div>
+                <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg">Pause</button>
+                <button onclick="singleStep()" id="step-btn" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors opacity-50 cursor-not-allowed shadow-lg" disabled>Step Edge</button>
+                <button onclick="resetReg()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors shadow-lg">Reset</button>
+            </div>
+        </header>
+
+        <div class="flex flex-col gap-6 w-full pb-10">
+            
+            <!-- Diagram Panel (Full Width) -->
+            <div class="panel p-4 flex flex-col items-center shadow-xl relative w-full">
+                <!-- Speed & Status Bar -->
+                <div class="w-full flex justify-between items-center mb-2 px-2">
+                    <div class="flex items-center gap-3 bg-slate-900 p-2 rounded border border-slate-700">
+                        <label class="text-xs font-bold text-slate-400">CLK DIV SPEED:</label>
+                        <input type="range" id="speed-slider" min="50" max="2000" value="800" class="w-24 accent-blue-500" oninput="updateSpeed()">
+                        <div class="w-3 h-3 rounded-full bg-slate-600" id="clk-indicator"></div>
+                    </div>
+                    
+                    <div class="bg-slate-900 p-2 px-4 rounded border border-slate-700 flex gap-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">Reg Value (Binary)</span>
+                            <span id="bin-display" class="font-mono font-bold text-base text-green-400">8'b00000000</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">Last SDI Bit Inserted</span>
+                            <span id="action-display" class="font-mono font-bold text-base text-slate-500">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic SVG Architecture Diagram -->
+                <div class="w-full overflow-hidden bg-[#0a0f1c] border border-slate-700 rounded shadow-inner relative" style="height: 480px;">
+                    
+                    <!-- Floating Legend -->
+                    <div class="absolute top-4 left-4 legend-box shadow-lg">
+                        <div class="flex flex-col gap-2 text-xs font-mono text-slate-300">
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-sm"></div> Serial Data In (SDI)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded-sm"></div> Shift Data Path</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-400 rounded-sm"></div> Parallel Out / Clock</div>
+                        </div>
+                    </div>
+
+                    <svg viewBox="0 0 1100 480" class="w-full h-full" id="arch-svg" preserveAspectRatio="xMidYMid meet">
+                        <!-- SVG Content populated by JS for precision -->
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Physical Blackboard Panel (Full Width) -->
+            <div class="panel p-6 shadow-xl relative bg-[#18212f] w-full">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest absolute top-2 left-4">Physical Blackboard Mapping</h3>
+                
+                <div class="mt-4 flex flex-col items-center gap-8">
+                    
+                    <!-- LEDs Row -->
+                    <div class="w-full flex justify-center items-end px-4 border-b border-slate-700/50 pb-6">
+                        <!-- Discrete LEDs 7 to 0 -->
+                        <div class="flex gap-6">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-1.5">
+                                            <div class="led led-off" id="phys-led-${i}"></div>
+                                            <span class="text-[10px] font-bold font-mono text-cyan-400">LD${i}</span>
+                                            <span class="text-[9px] text-slate-500 font-mono">[${i}]</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Row -->
+                    <div class="w-full flex justify-center px-8">
+                        <!-- Buttons -->
+                        <div class="flex gap-12">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn0" onmousedown="pressBtn(0)" onmouseup="releaseBtn(0)" onmouseleave="releaseBtn(0)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-cyan-400">BTN0</span>
+                                    <span class="text-[10px] text-slate-400">Serial Data (SDI)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Tabs: Code & Explanations (Full Width at Bottom) -->
+            <div class="panel flex flex-col w-full shadow-xl">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-700 bg-slate-900 rounded-t-xl px-2 pt-2">
+                    <button class="tab-btn active px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-operation')">Operation Documentation</button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-code')">Verilog Code</button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-6">
+                    
+                    <!-- Operation Tab -->
+                    <div id="tab-operation" class="tab-content active text-sm text-slate-300">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-xl font-bold text-white mb-4">SIPO: Serial-In Parallel-Out Architecture</h3>
+                            <p class="mb-4 text-base">This register accepts data exactly one bit at a time (Serial In) on each rising edge of the divided clock, but all 8 integrated bits are continuously available on the output wires simultaneously (Parallel Out).</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-blue-400 block mb-2 text-lg">Serial Data Input (SDI)</strong>
+                                    <span class="text-sm">The state of <code>BTN0</code> dictates the data entering <strong>Bit 0</strong>. Holding BTN0 high (pressed) inputs a <code>1</code>; leaving it unpressed inputs a <code>0</code>. The previous Bit 7 is discarded completely (no circular feedback).</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-green-400 block mb-2 text-lg">Parallel Output vs. SISO</strong>
+                                    <span class="text-sm">Unlike a Serial-In Serial-Out (SISO) register where you must wait 8 clocks just to read the final cascaded bit, this SIPO design allows immediate tapping of all intermediate flip-flops (LD0-LD7) instantly.</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-4 border-l-4 border-l-yellow-500 bg-slate-800">
+                                <strong class="block text-yellow-400 mb-1">Testing Challenge: Assembling 10110010</strong>
+                                <p class="text-sm">To assemble the binary byte <code>10110010</code>, you must enter it bit-by-bit from MSB to LSB. Time your button presses with the clock edges to shift in: 1, then 0, then 1, 1, 0, 0, 1, 0!</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Tab -->
+                    <div id="tab-code" class="tab-content">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase mb-3">Req 6 Verilog Implementation</h3>
+                            <pre class="text-sm font-mono text-green-400 leading-relaxed bg-slate-900 p-6 rounded border border-slate-700 overflow-x-auto">
+<span class="text-slate-500">// 1. Clock Divider</span>
+<span class="text-blue-400">reg</span> [25:0] cntr;
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> clk) cntr <= cntr + 1;
+<span class="text-blue-400">wire</span> slow_clk = cntr[25];
+
+<span class="text-slate-500">// 2. SIPO Shift Register Logic</span>
+<span class="text-blue-400">reg</span> [7:0] shift_reg;
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> slow_clk) <span class="text-blue-400">begin</span>
+    <span class="text-slate-500">// Shift bits left by 1, inject BTN0 into Bit 0</span>
+    shift_reg <= {shift_reg[6:0], btn[0]};
+<span class="text-blue-400">end</span>
+
+<span class="text-slate-500">// 3. Physical Output Mapping</span>
+<span class="text-slate-500">// Parallel tap of all 8 register bits immediately to LEDs</span>
+<span class="text-blue-400">assign</span> led = shift_reg;
+                            </pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Data State
+        let regVal = 0x00;
+        
+        // Latched State for button
+        let btn = [false]; 
+        let btnLatched = [false]; 
+        
+        // Sim State
+        let isPaused = false;
+        let speedMs = 800;
+        let clockInterval;
+        let clkState = 0; 
+
+        function initSVG() {
+            const svg = document.getElementById('arch-svg');
+            let content = '';
+
+            // Clock bus
+            content += '<path id="wire-clk-bus" d="M 120 380 L 980 380" class="diag-wire wire-idle"/>';
+            content += '<rect x="480" y="370" width="140" height="20" class="box-idle"/>';
+            content += '<text x="550" y="384" text-anchor="middle" class="ff-text">DIVIDED CLOCK cntr[25]</text>';
+
+            // Serial Input Block
+            content += '<rect id="sdi-box" x="880" y="145" width="120" height="40" class="box-idle" rx="4"/>';
+            content += '<text x="940" y="170" text-anchor="middle" class="ff-text font-bold" fill="#22d3ee">SDI (BTN0)</text>';
+            content += '<path id="wire-sdi" d="M 880 165 L 810 165" class="diag-wire wire-idle"/>';
+            content += '<polygon id="arr-sdi" points="820,160 810,165 820,170" class="box-idle"/>';
+
+            // FFs (Bit 7 to 0, arranged right to left to show left-shifting behavior clearly)
+            for(let i=0; i<=7; i++) {
+                let x = 780 - (i * 90); 
+                let y = 135;
+
+                content += `<rect id="diag-box-${i}" x="${x-20}" y="${y}" width="40" height="60" class="ff-box" rx="3" />`;
+                content += `<text x="${x}" y="${y+18}" text-anchor="middle" class="ff-text">Bit</text>`;
+                content += `<text x="${x}" y="${y+32}" text-anchor="middle" class="ff-text font-bold" fill="#e2e8f0">${i}</text>`;
+                content += `<text id="diag-val-${i}" x="${x}" y="${y+52}" text-anchor="middle" class="ff-val">0</text>`;
+
+                // Clock tap
+                content += `<path id="wire-clk-tap-${i}" d="M ${x} 380 L ${x} 230" class="diag-wire wire-idle"/>`;
+                content += `<polygon points="${x-5},230 ${x+5},230 ${x},225" fill="#475569"/>`;
+
+                // Shift Path (from bit i to bit i+1)
+                if (i < 7) {
+                    content += `<path id="wire-shift-${i}" d="M ${x-20} 165 L ${x-70} 165" class="diag-wire wire-idle"/>`;
+                    content += `<polygon id="arr-shift-${i}" points="${x-60},160 ${x-70},165 ${x-60},170" class="box-idle"/>`;
+                }
+
+                // Parallel Output
+                content += `<path id="diag-out-path-${i}" d="M ${x} 195 L ${x} 300" class="diag-wire wire-idle" stroke-dasharray="2"/>`;
+                content += `<rect x="${x-15}" y="300" width="30" height="20" class="box-idle" rx="2"/>`;
+                content += `<text x="${x}" y="313" text-anchor="middle" class="ff-text font-bold text-green-400">LD${i}</text>`;
+            }
+
+            svg.innerHTML = content;
+        }
+
+        // Apply visual classes for routing
+        function activate(id, colorCls) {
+            let el = document.getElementById(id);
+            if(el) {
+                el.classList.remove('wire-idle', 'box-idle', 'wire-blue', 'wire-yellow', 'wire-green', 'fill-blue', 'fill-yellow');
+                el.classList.add(colorCls);
+            }
+        }
+        function activateArr(arr, colorCls) { arr.forEach(id => activate(id, colorCls)); }
+
+        function resetPaths() {
+            const allPaths = ['wire-sdi', 'arr-sdi', 'sdi-box', 'wire-clk-bus'];
+            for(let i=0; i<=7; i++) {
+                allPaths.push(`wire-clk-tap-${i}`);
+                if (i<7) {
+                    allPaths.push(`wire-shift-${i}`);
+                    allPaths.push(`arr-shift-${i}`);
+                }
+            }
+            activateArr(allPaths, 'wire-idle');
+            activate('sdi-box', 'box-idle');
+        }
+
+        function updateUI(oldVal, sdiBit) {
+            // Display Update
+            document.getElementById('bin-display').innerText = `8'b${regVal.toString(2).padStart(8, '0')}`;
+            
+            let actionEl = document.getElementById('action-display');
+            actionEl.innerText = sdiBit === -1 ? "-" : `SHIFTED IN: ${sdiBit}`;
+            actionEl.className = sdiBit === 1 ? "font-mono font-bold text-base text-blue-400" : (sdiBit === 0 ? "font-mono font-bold text-base text-yellow-400" : "font-mono font-bold text-base text-slate-500");
+
+            // Update FF Values & Physical LEDs
+            for(let i=0; i<=7; i++) {
+                let bitVal = (regVal >> i) & 1;
+                let oldBitVal = (oldVal >> i) & 1;
+                let changed = (bitVal !== oldBitVal && sdiBit !== -1);
+
+                let valEl = document.getElementById(`diag-val-${i}`);
+                if(valEl) {
+                    valEl.textContent = bitVal;
+                    if(changed) {
+                        valEl.classList.add('changed');
+                        setTimeout(() => valEl.classList.remove('changed'), Math.min(speedMs - 50, 400));
+                    }
+                }
+
+                let boxEl = document.getElementById(`diag-box-${i}`);
+                if(boxEl) {
+                    boxEl.setAttribute('class', 'ff-box'); // reset
+                    if(sdiBit !== -1) {
+                        boxEl.setAttribute('class', 'ff-box shifted');
+                        setTimeout(() => boxEl.setAttribute('class', 'ff-box'), Math.min(speedMs - 50, 400));
+                    }
+                }
+
+                if(bitVal) activate(`diag-out-path-${i}`, 'wire-green');
+                else activate(`diag-out-path-${i}`, 'wire-idle');
+
+                let ledEl = document.getElementById(`phys-led-${i}`);
+                if (ledEl) {
+                    if(bitVal) {
+                        ledEl.classList.remove('led-off');
+                        ledEl.classList.add('led-on');
+                    } else {
+                        ledEl.classList.remove('led-on');
+                        ledEl.classList.add('led-off');
+                    }
+                    if(changed) {
+                        ledEl.classList.add('led-changed');
+                        setTimeout(() => ledEl.classList.remove('led-changed'), Math.min(speedMs - 50, 400));
+                    }
+                }
+            }
+
+            // Diagram Path Animations
+            resetPaths();
+            let animDuration = Math.min(speedMs - 50, 400);
+
+            // Clock pulse
+            activate("wire-clk-bus", "wire-green");
+            for(let i=0; i<=7; i++) activate(`wire-clk-tap-${i}`, "wire-green");
+            setTimeout(() => { 
+                activate("wire-clk-bus", "wire-idle");
+                for(let i=0; i<=7; i++) activate(`wire-clk-tap-${i}`, "wire-idle");
+            }, 150);
+
+            if(sdiBit !== -1) {
+                // Shift Paths Light up
+                let shiftPaths = [];
+                for(let i=0; i<7; i++) {
+                    shiftPaths.push(`wire-shift-${i}`);
+                    shiftPaths.push(`arr-shift-${i}`);
+                }
+                activateArr(shiftPaths, 'wire-yellow');
+
+                // SDI path colors
+                if(sdiBit === 1) {
+                    activate('wire-sdi', 'wire-blue');
+                    activate('arr-sdi', 'wire-blue');
+                    activate('sdi-box', 'fill-blue');
+                } else {
+                    activate('wire-sdi', 'wire-yellow');
+                    activate('arr-sdi', 'wire-yellow');
+                    activate('sdi-box', 'fill-yellow');
+                }
+
+                setTimeout(resetPaths, animDuration);
+            }
+        }
+
+        // --- Interaction Logic ---
+        function pressBtn(idx) {
+            btn[idx] = true;
+            btnLatched[idx] = true; // Latch for next slow clock edge
+            document.getElementById(`btn${idx}`).classList.add('btn-pressed');
+        }
+
+        function releaseBtn(idx) {
+            btn[idx] = false;
+        }
+
+        // --- Core Simulation Logic ---
+        function clockTick() {
+            clkState = 1 - clkState;
+            document.getElementById('clk-indicator').style.backgroundColor = clkState ? '#4ade80' : '#475569';
+            document.getElementById('clk-indicator').style.boxShadow = clkState ? '0 0 8px #4ade80' : 'none';
+
+            let oldVal = regVal;
+            
+            // Extract SDI from latched button
+            let sdiBit = (btn[0] || btnLatched[0]) ? 1 : 0;
+            
+            btnLatched = [false];
+            if(!btn[0]) document.getElementById(`btn0`).classList.remove('btn-pressed');
+
+            // Shift register logic: shift left, insert SDI at bit 0
+            let nextVal = ((oldVal << 1) & 0xFF) | sdiBit;
+            
+            regVal = nextVal;
+            updateUI(oldVal, sdiBit);
+        }
+
+        function startClock() {
+            if(clockInterval) clearInterval(clockInterval);
+            clockInterval = setInterval(clockTick, speedMs);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            let b = document.getElementById('pause-btn');
+            let stepBtn = document.getElementById('step-btn');
+            
+            if(isPaused) {
+                clearInterval(clockInterval);
+                b.innerText = "Resume";
+                b.className = "px-4 py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition-colors shadow-lg";
+                stepBtn.disabled = false;
+                stepBtn.className = "px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors cursor-pointer shadow-lg";
+            } else {
+                startClock();
+                b.innerText = "Pause";
+                b.className = "px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg";
+                stepBtn.disabled = true;
+                stepBtn.className = "px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors opacity-50 cursor-not-allowed shadow-lg";
+            }
+        }
+
+        function singleStep() {
+            if(isPaused) clockTick();
+        }
+
+        function resetReg() {
+            let oldVal = regVal;
+            regVal = 0x00;
+            btn = [false];
+            btnLatched = [false];
+            document.getElementById(`btn0`).classList.remove('btn-pressed');
+            updateUI(oldVal, -1);
+        }
+
+        function updateSpeed() {
+            let sliderVal = document.getElementById('speed-slider').value;
+            speedMs = parseInt(sliderVal);
+            if(!isPaused) startClock();
+        }
+
+        window.onload = () => {
+            initSVG();
+            updateUI(0x00, -1);
+            startClock();
+        };
+    </script>
+</body>
+</html>

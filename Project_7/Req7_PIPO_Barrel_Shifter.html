@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-bit PIPO Register & Barrel Shifter Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+        
+        /* Interactive Elements */
+        .switch-track { width: 24px; height: 60px; background-color: #1e293b; border-radius: 4px; position: relative; border: 2px solid #334155; cursor: pointer; }
+        .switch-thumb { width: 20px; height: 26px; background-color: #94a3b8; position: absolute; left: 0; transition: all 0.2s ease-in-out; border-radius: 2px; }
+        .switch-on { top: 0; background-color: #4ade80; }
+        .switch-off { bottom: 0; background-color: #64748b; }
+        
+        .btn { width: 44px; height: 44px; border-radius: 50%; background-color: #ef4444; border: 4px solid #7f1d1d; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .btn:active, .btn-pressed { transform: scale(0.9); background-color: #dc2626; box-shadow: inset 0 3px 5px rgba(0,0,0,0.5); }
+        
+        /* Discrete LEDs */
+        .led { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #064e3b; transition: all 0.1s; }
+        .led-on { background-color: #22c55e; box-shadow: 0 0 10px 2px #22c55e; border-color: #86efac; }
+        .led-off { background-color: #064e3b; box-shadow: none; }
+        .led-changed { box-shadow: 0 0 15px 4px #fbbf24; border-color: #fcd34d; }
+        
+        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; }
+
+        /* Diagram Animations & Styles */
+        .diag-wire { fill: none; stroke-width: 2; transition: all 0.2s ease; }
+        .wire-idle { stroke: #334155; }
+        .wire-blue { stroke: #3b82f6 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #3b82f6); }
+        .wire-orange { stroke: #f97316 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #f97316); }
+        .wire-yellow { stroke: #fbbf24 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #fbbf24); }
+        .wire-green { stroke: #4ade80 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #4ade80); }
+        .wire-purple { stroke: #c084fc !important; stroke-width: 3; filter: drop-shadow(0 0 4px #c084fc); }
+        .wire-cyan { stroke: #22d3ee !important; stroke-width: 3; filter: drop-shadow(0 0 4px #22d3ee); }
+
+        .box-idle { fill: #1e293b; stroke: #475569; transition: all 0.2s ease; }
+        .fill-blue { fill: #1e3a8a !important; stroke: #3b82f6 !important; filter: drop-shadow(0 0 4px #3b82f6); }
+        .fill-orange { fill: #7c2d12 !important; stroke: #f97316 !important; filter: drop-shadow(0 0 4px #f97316); }
+        .fill-yellow { fill: #713f12 !important; stroke: #fbbf24 !important; filter: drop-shadow(0 0 4px #fbbf24); }
+        .fill-cyan { fill: #083344 !important; stroke: #22d3ee !important; filter: drop-shadow(0 0 4px #22d3ee); }
+
+        .ff-box { fill: #0f172a; stroke: #475569; stroke-width: 2; transition: all 0.2s; }
+        .ff-box.clocked { fill: #1e3a8a; stroke: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+        
+        .ff-text { fill: #94a3b8; font-family: monospace; font-size: 10px; user-select: none; }
+        .ff-val { fill: #4ade80; font-family: monospace; font-size: 16px; font-weight: bold; user-select: none; transition: fill 0.2s; }
+        .ff-val.changed { fill: #fbbf24; }
+        
+        /* Tab Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        .tab-btn:hover:not(.active) { color: #e2e8f0; }
+
+        /* Legend overlay box */
+        .legend-box { background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; border-radius: 6px; padding: 8px; z-index: 10; }
+    </style>
+</head>
+<body class="flex flex-col items-center p-6 min-h-screen">
+    <div class="max-w-7xl w-full">
+        <!-- Header -->
+        <header class="mb-4 flex justify-between items-end border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 mb-1">8-bit PIPO & Barrel Shifter (Project 7)</h1>
+                <p class="text-slate-400 text-sm">Clear Architecture View: Sequential PIPO Register paired with Combinational Shifter.</p>
+            </div>
+            <div class="flex flex-col gap-2 items-end">
+                <a href="../index.html?project=Project_7" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold transition-colors shadow-lg border border-slate-500 text-sm whitespace-nowrap text-center flex items-center justify-center h-[40px] mb-2">
+                    &#8592; Back to Simulations
+                </a>
+                <div class="flex gap-2"></div>
+                <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg">Auto Clock</button>
+                <button onclick="singleStep()" id="step-btn" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors shadow-lg">Step Edge</button>
+                <button onclick="resetReg()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors shadow-lg">Reset</button>
+            </div>
+        </header>
+
+        <div class="flex flex-col gap-6 w-full pb-10">
+            
+            <!-- Diagram Panel (Full Width) -->
+            <div class="panel p-4 flex flex-col items-center shadow-xl relative w-full">
+                <!-- Speed & Status Bar -->
+                <div class="w-full flex justify-between items-center mb-2 px-2">
+                    <div class="flex items-center gap-3 bg-slate-900 p-2 rounded border border-slate-700">
+                        <label class="text-xs font-bold text-slate-400">AUTO-CLK SPEED:</label>
+                        <input type="range" id="speed-slider" min="50" max="2000" value="800" class="w-24 accent-blue-500" oninput="updateSpeed()">
+                        <div class="w-3 h-3 rounded-full bg-slate-600" id="clk-indicator"></div>
+                    </div>
+                    
+                    <div class="bg-slate-900 p-2 px-4 rounded border border-slate-700 flex gap-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">PIPO Stored Data</span>
+                            <span id="pipo-hex" class="font-mono font-bold text-base text-orange-400">8'h00</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">Barrel Shifter Out</span>
+                            <span id="led-hex" class="font-mono font-bold text-base text-green-400">8'h00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic SVG Architecture Diagram -->
+                <div class="w-full overflow-hidden bg-[#0a0f1c] border border-slate-700 rounded shadow-inner relative" style="height: 550px;">
+                    
+                    <!-- Floating Legend -->
+                    <div class="absolute top-4 left-4 legend-box shadow-lg">
+                        <div class="flex flex-col gap-2 text-xs font-mono text-slate-300">
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-sm"></div> SW Data (Raw)</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-purple-400 rounded-sm"></div> Shifter Control Lines</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-cyan-400 rounded-sm"></div> BTN0 Clock Line</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-orange-500 rounded-sm"></div> PIPO Stored Output</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-400 rounded-sm"></div> LED Combinational Out</div>
+                        </div>
+                    </div>
+
+                    <svg viewBox="0 0 1100 550" class="w-full h-full" id="arch-svg" preserveAspectRatio="xMidYMid meet">
+                        <!-- SVG Content populated by JS for precision -->
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Physical Blackboard Panel (Full Width) -->
+            <div class="panel p-6 shadow-xl relative bg-[#18212f] w-full">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest absolute top-2 left-4">Physical Blackboard Mapping</h3>
+                
+                <div class="mt-4 flex flex-col items-center gap-8">
+                    
+                    <!-- LEDs Row -->
+                    <div class="w-full flex justify-center items-end px-4 border-b border-slate-700/50 pb-6 gap-12">
+                        <!-- Discrete LEDs 7 to 0 -->
+                        <div class="flex gap-6">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-1.5">
+                                            <div class="led led-off" id="phys-led-${i}"></div>
+                                            <span class="text-[10px] font-bold font-mono text-green-400">LD${i}</span>
+                                            <span class="text-[9px] text-slate-500 font-mono">[${i}]</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Row -->
+                    <div class="w-full flex justify-center gap-24 px-8">
+                        <!-- Buttons -->
+                        <div class="flex gap-12">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn0" onmousedown="pressBtn(0)" onmouseup="releaseBtn(0)" onmouseleave="releaseBtn(0)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-cyan-400">BTN0</span>
+                                    <span class="text-[10px] text-slate-400">PIPO Clock</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Switches -->
+                        <div class="flex gap-4">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-2 mx-1">
+                                            <div class="switch-track" onclick="toggleSwitch(${i})">
+                                                <div class="switch-thumb switch-off" id="sw-${i}"></div>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono font-bold">SW${i}</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Tabs: Code & Explanations (Full Width at Bottom) -->
+            <div class="panel flex flex-col w-full shadow-xl">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-700 bg-slate-900 rounded-t-xl px-2 pt-2">
+                    <button class="tab-btn active px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-operation')">Operation Documentation</button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-code')">Verilog Code</button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-6">
+                    
+                    <!-- Operation Tab -->
+                    <div id="tab-operation" class="tab-content active text-sm text-slate-300">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-xl font-bold text-white mb-4">Sequential PIPO vs Combinational Shifter</h3>
+                            <p class="mb-4 text-base">This architecture combines a clocked storage register (PIPO) and instantaneous logic (Barrel Shifter). Changes to switches instantly update the Shifter output and LEDs, but the base data being shifted does not change until BTN0 is pressed.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-cyan-400 block mb-2 text-lg">PIPO Register (BTN0)</strong>
+                                    <span class="text-sm">The 8-bit Parallel-In Parallel-Out register captures the state of all 8 switches ONLY on the rising edge of <strong>BTN0</strong>. When the button is released, the register ignores the switches and holds its data steady.</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-purple-400 block mb-2 text-lg">Barrel Shifter Controls</strong>
+                                    <ul class="text-sm space-y-1 list-disc pl-4">
+                                        <li><strong>SW[3:0]</strong>: Shift Amount (0-8; 9-15 cap at 8).</li>
+                                        <li><strong>SW[5:4]</strong>: Mode (00=LSL, 01=LSR, 10=ROL, 11=ROR).</li>
+                                        <li><strong>SW[6]</strong>: Fill Bit (Used in Shifts, ignored in Rotates).</li>
+                                        <li><strong>SW[7]</strong>: Unused by shifter.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Tab -->
+                    <div id="tab-code" class="tab-content">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase mb-3">Project 7 Challenge Verilog Implementation</h3>
+                            <pre class="text-sm font-mono text-green-400 leading-relaxed bg-slate-900 p-6 rounded border border-slate-700 overflow-x-auto">
+<span class="text-slate-500">// 1. Sequential PIPO Register</span>
+<span class="text-blue-400">reg</span> [7:0] stored_data = 8'b00000000;
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> btn[0]) <span class="text-blue-400">begin</span>
+    stored_data <= sw[7:0];
+<span class="text-blue-400">end</span>
+
+<span class="text-slate-500">// 2. Combinational Barrel Shifter Logic</span>
+<span class="text-blue-400">wire</span> [3:0] raw_shamt = sw[3:0];
+<span class="text-blue-400">wire</span> [3:0] shamt     = (raw_shamt > 8) ? 8 : raw_shamt;
+<span class="text-blue-400">wire</span> [1:0] mode      = sw[5:4];
+<span class="text-blue-400">wire</span>       fill_bit  = sw[6];
+
+<span class="text-blue-400">reg</span> [7:0] shift_out;
+<span class="text-blue-400">always</span> @(*) <span class="text-blue-400">begin</span>
+    <span class="text-blue-400">case</span> (mode)
+        <span class="text-slate-500">// Shift Left (LSL)</span>
+        2'b00: shift_out = (stored_data << shamt) | ({8{fill_bit}} & ~(8'hFF << shamt));
+        
+        <span class="text-slate-500">// Shift Right (LSR)</span>
+        2'b01: shift_out = (stored_data >> shamt) | ({8{fill_bit}} & ~(8'hFF >> shamt));
+        
+        <span class="text-slate-500">// Rotate Left (ROL)</span>
+        2'b10: shift_out = (stored_data << (shamt % 8)) | (stored_data >> (8 - (shamt % 8)));
+        
+        <span class="text-slate-500">// Rotate Right (ROR)</span>
+        2'b11: shift_out = (stored_data >> (shamt % 8)) | (stored_data << (8 - (shamt % 8)));
+    <span class="text-blue-400">endcase</span>
+    
+    <span class="text-slate-500">// Edge case: Rotating by exactly 8 returns original data</span>
+    <span class="text-blue-400">if</span> (mode[1] && shamt == 8) <span class="text-blue-400">begin</span>
+        shift_out = stored_data;
+    <span class="text-blue-400">end</span>
+<span class="text-blue-400">end</span>
+
+<span class="text-slate-500">// 3. Physical Output Mapping</span>
+<span class="text-blue-400">assign</span> led = shift_out;
+                            </pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Data State
+        let swVal = 0x00;
+        let pipoVal = 0x00;
+        let ledVal = 0x00;
+        
+        let isAutoPlay = false;
+        let speedMs = 800;
+        let clockInterval;
+        let btn0Down = false;
+
+        function initSVG() {
+            const svg = document.getElementById('arch-svg');
+            let content = '';
+
+            // --- SW Bus ---
+            content += '<path id="wire-sw-main" d="M 80 80 L 80 440" class="diag-wire wire-blue"/>';
+            content += '<text x="80" y="70" text-anchor="middle" class="ff-text font-bold text-blue-400">SW[7:0]</text>';
+
+            // --- PIPO Data Input Taps ---
+            for(let i=0; i<=7; i++) {
+                let x = 180 + ((7-i) * 45); 
+                content += `<path d="M 80 100 L ${x} 100 L ${x} 130" class="diag-wire wire-blue"/>`;
+            }
+
+            // --- PIPO Register FFs ---
+            content += '<rect x="160" y="110" width="370" height="90" rx="4" class="box-idle" stroke-dasharray="4"/>';
+            content += '<text x="345" y="125" text-anchor="middle" class="ff-text font-bold text-white">8-BIT PIPO REGISTER</text>';
+            
+            for(let i=0; i<=7; i++) {
+                let x = 180 + ((7-i) * 45);
+                content += `<rect id="pipo-box-${i}" x="${x-15}" y="135" width="30" height="50" class="ff-box" rx="2" />`;
+                content += `<text x="${x}" y="150" text-anchor="middle" class="ff-text">${i}</text>`;
+                content += `<text id="pipo-val-${i}" x="${x}" y="170" text-anchor="middle" class="ff-val">0</text>`;
+                
+                // Clock tap
+                content += `<path id="wire-clk-tap-${i}" d="M ${x-15} 230 L ${x-15} 170" class="diag-wire wire-idle"/>`;
+                content += `<polygon points="${x-20},170 ${x-10},170 ${x-15},165" fill="#475569"/>`;
+
+                // PIPO Output Data
+                content += `<path id="wire-pipo-out-${i}" d="M ${x} 185 L ${x} 270" class="diag-wire wire-orange"/>`;
+            }
+
+            // --- BTN0 Clock Bus ---
+            content += '<path id="wire-btn0" d="M 80 230 L 490 230" class="diag-wire wire-idle"/>';
+            content += '<text x="80" y="225" text-anchor="middle" class="ff-text font-bold" fill="#22d3ee">BTN0 Clock</text>';
+
+            // --- PIPO Output Aggregation ---
+            content += '<path d="M 180 270 L 495 270 L 495 330 L 640 330" class="diag-wire wire-orange"/>';
+            content += '<polygon points="635,325 635,335 640,330" fill="#f97316"/>';
+            content += '<text x="560" y="325" text-anchor="middle" class="ff-text font-bold text-orange-400">stored_data[7:0]</text>';
+
+            // --- SW to Combinational Control Bus ---
+            content += '<path d="M 80 440 L 750 440 L 750 410" class="diag-wire wire-purple"/>';
+            content += '<polygon points="745,415 755,415 750,410" fill="#c084fc"/>';
+            content += '<text x="400" y="435" text-anchor="middle" class="ff-text font-bold text-purple-400">Shifter Controls (SW[6:0])</text>';
+
+            // --- BARREL SHIFTER BLOCK ---
+            content += '<rect id="shifter-box" x="640" y="230" width="220" height="180" class="box-idle" rx="6"/>';
+            content += '<text x="750" y="260" text-anchor="middle" class="ff-text font-bold text-white text-sm">COMBINATIONAL</text>';
+            content += '<text x="750" y="275" text-anchor="middle" class="ff-text font-bold text-white text-sm">BARREL SHIFTER</text>';
+            
+            // Dynamic Display inside Shifter
+            content += '<rect x="660" y="290" width="180" height="100" class="bg-slate-900" fill="#0f172a" rx="4" stroke="#334155"/>';
+            content += '<text id="svg-mode" x="750" y="320" text-anchor="middle" class="ff-text font-bold text-green-400 text-sm">MODE: SHIFT LEFT</text>';
+            content += '<text id="svg-shamt" x="750" y="345" text-anchor="middle" class="ff-text font-bold text-blue-400 text-sm">AMOUNT: 0</text>';
+            content += '<text id="svg-fill" x="750" y="370" text-anchor="middle" class="ff-text font-bold text-yellow-400 text-sm">FILL BIT: 0</text>';
+
+            // --- Shifter Output to LEDs ---
+            content += '<path d="M 860 320 L 920 320" class="diag-wire wire-green"/>';
+            content += '<text x="890" y="315" text-anchor="middle" class="ff-text font-bold text-green-400">LED[7:0]</text>';
+
+            for(let i=0; i<=7; i++) {
+                let y = 140 + ((7-i) * 45); 
+                content += `<path d="M 920 320 L 920 ${y} L 950 ${y}" class="diag-wire wire-green"/>`;
+                
+                content += `<rect x="950" y="${y-10}" width="40" height="20" class="box-idle" rx="2"/>`;
+                content += `<text x="970" y="${y+4}" text-anchor="middle" class="ff-text font-bold text-green-400">LD${i}</text>`;
+                content += `<text id="shifter-val-${i}" x="1010" y="${y+5}" text-anchor="middle" class="ff-val">0</text>`;
+            }
+
+            svg.innerHTML = content;
+        }
+
+        // Core Combinational Logic (Instantly updates on SW change)
+        function updateCombinational() {
+            let shamt = swVal & 0x0F;
+            if (shamt > 8) shamt = 8;
+            let mode = (swVal >> 4) & 0x03;
+            let fill = (swVal >> 6) & 0x01;
+
+            let out = 0;
+            let modeStr = "";
+
+            if (mode === 0) { // LSL
+                modeStr = "SHIFT LEFT";
+                let mask = (1 << shamt) - 1;
+                let fillBits = fill ? mask : 0;
+                out = ((pipoVal << shamt) & 0xFF) | fillBits;
+            } else if (mode === 1) { // LSR
+                modeStr = "SHIFT RIGHT";
+                let mask = ((1 << shamt) - 1) << (8 - shamt);
+                let fillBits = fill ? mask : 0;
+                out = (pipoVal >> shamt) | fillBits;
+            } else if (mode === 2) { // ROL
+                modeStr = "ROTATE LEFT";
+                let s = shamt % 8;
+                if (shamt === 8) s = 0; // Rotate by exactly 8 returns original
+                out = ((pipoVal << s) & 0xFF) | (pipoVal >> (8 - s));
+            } else if (mode === 3) { // ROR
+                modeStr = "ROTATE RIGHT";
+                let s = shamt % 8;
+                if (shamt === 8) s = 0;
+                out = (pipoVal >> s) | ((pipoVal << (8 - s)) & 0xFF);
+            }
+            
+            ledVal = out & 0xFF;
+
+            // UI Text Updates
+            document.getElementById('svg-mode').textContent = `MODE: ${modeStr}`;
+            document.getElementById('svg-shamt').textContent = `AMOUNT: ${shamt}`;
+            document.getElementById('svg-fill').textContent = (mode < 2) ? `FILL BIT: ${fill}` : `FILL BIT: IGNORED`;
+            
+            document.getElementById('pipo-hex').textContent = `8'h${pipoVal.toString(16).padStart(2,'0').toUpperCase()}`;
+            document.getElementById('led-hex').textContent = `8'h${ledVal.toString(16).padStart(2,'0').toUpperCase()}`;
+
+            // Output Values & Physical LEDs Update
+            for(let i=0; i<8; i++) {
+                let bit = (ledVal >> i) & 1;
+                
+                // SVG Shifter Output Text
+                let svgValEl = document.getElementById(`shifter-val-${i}`);
+                if(svgValEl) svgValEl.textContent = bit;
+
+                // Physical LED
+                let ledEl = document.getElementById(`phys-led-${i}`);
+                if (ledEl) {
+                    ledEl.className = bit ? "led led-on" : "led led-off";
+                }
+            }
+
+            // Flash shifter box to show combinational evaluation happened
+            let sb = document.getElementById('shifter-box');
+            sb.classList.remove('box-idle');
+            sb.classList.add('fill-cyan');
+            setTimeout(() => {
+                sb.classList.remove('fill-cyan');
+                sb.classList.add('box-idle');
+            }, 100);
+        }
+
+        // Sequential Clock Event
+        function clockEdge() {
+            let oldVal = pipoVal;
+            pipoVal = swVal; // Capture SW[7:0] exactly on edge
+            
+            // Flash Clock Wires
+            let wireBtn0 = document.getElementById('wire-btn0');
+            wireBtn0.classList.remove('wire-idle');
+            wireBtn0.classList.add('wire-cyan');
+            
+            for(let i=0; i<=7; i++) {
+                let tap = document.getElementById(`wire-clk-tap-${i}`);
+                tap.classList.remove('wire-idle');
+                tap.classList.add('wire-cyan');
+
+                let box = document.getElementById(`pipo-box-${i}`);
+                box.classList.remove('box-idle');
+                box.classList.add('ff-box', 'clocked');
+                
+                let valEl = document.getElementById(`pipo-val-${i}`);
+                let oldBit = (oldVal >> i) & 1;
+                let newBit = (pipoVal >> i) & 1;
+                valEl.textContent = newBit;
+                if(oldBit !== newBit) {
+                    valEl.classList.add('changed');
+                    setTimeout(() => valEl.classList.remove('changed'), 200);
+                }
+            }
+
+            setTimeout(() => {
+                wireBtn0.classList.remove('wire-cyan');
+                wireBtn0.classList.add('wire-idle');
+                for(let i=0; i<=7; i++) {
+                    document.getElementById(`wire-clk-tap-${i}`).classList.remove('wire-cyan');
+                    document.getElementById(`wire-clk-tap-${i}`).classList.add('wire-idle');
+                    document.getElementById(`pipo-box-${i}`).classList.remove('clocked');
+                }
+            }, 150);
+
+            // Re-evaluate combinational logic based on new pipoVal
+            updateCombinational();
+        }
+
+
+        // UI Interactions
+        function toggleSwitch(idx) {
+            let mask = 1 << idx;
+            swVal ^= mask;
+            let swEl = document.getElementById(`sw-${idx}`);
+            if((swVal >> idx) & 1) {
+                swEl.classList.remove('switch-off');
+                swEl.classList.add('switch-on');
+            } else {
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+            }
+            
+            // In a PIPO/Combinational design, flipping switches does NOT change PIPO.
+            // But it instantly changes the Shifter controls.
+            updateCombinational();
+        }
+
+        function pressBtn(idx) {
+            if(idx === 0 && !btn0Down) {
+                btn0Down = true;
+                document.getElementById(`btn${idx}`).classList.add('btn-pressed');
+                clockEdge(); // Fire posedge
+            }
+        }
+
+        function releaseBtn(idx) {
+            if(idx === 0) {
+                btn0Down = false;
+                document.getElementById(`btn${idx}`).classList.remove('btn-pressed');
+            }
+        }
+
+        // Auto Clocking (Simulates pressing BTN0 rhythmically)
+        function tickAutoClock() {
+            let ind = document.getElementById('clk-indicator');
+            ind.style.backgroundColor = '#22d3ee';
+            ind.style.boxShadow = '0 0 8px #22d3ee';
+            
+            pressBtn(0);
+            
+            setTimeout(() => {
+                releaseBtn(0);
+                ind.style.backgroundColor = '#475569';
+                ind.style.boxShadow = 'none';
+            }, 100);
+        }
+
+        function startClock() {
+            if(clockInterval) clearInterval(clockInterval);
+            clockInterval = setInterval(tickAutoClock, speedMs);
+        }
+
+        function togglePause() {
+            isAutoPlay = !isAutoPlay;
+            let b = document.getElementById('pause-btn');
+            
+            if(!isAutoPlay) {
+                clearInterval(clockInterval);
+                b.innerText = "Auto Clock";
+                b.className = "px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg";
+            } else {
+                startClock();
+                b.innerText = "Stop Auto";
+                b.className = "px-4 py-2 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors shadow-lg";
+            }
+        }
+
+        function singleStep() {
+            tickAutoClock();
+        }
+
+        function resetReg() {
+            pipoVal = 0x00;
+            swVal = 0x00;
+            for(let i=0; i<=7; i++) {
+                let swEl = document.getElementById(`sw-${i}`);
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+                document.getElementById(`pipo-val-${i}`).textContent = "0";
+            }
+            if(isAutoPlay) togglePause();
+            updateCombinational();
+        }
+
+        function updateSpeed() {
+            let sliderVal = document.getElementById('speed-slider').value;
+            speedMs = parseInt(sliderVal);
+            if(isAutoPlay) startClock();
+        }
+
+        window.onload = () => {
+            initSVG();
+            updateCombinational();
+        };
+    </script>
+</body>
+</html>

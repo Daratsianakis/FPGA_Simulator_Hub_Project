@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16-bit PISO Circular Shift Register - High Clarity Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+        
+        /* Interactive Elements */
+        .switch-track { width: 24px; height: 60px; background-color: #1e293b; border-radius: 4px; position: relative; border: 2px solid #334155; cursor: pointer; }
+        .switch-thumb { width: 20px; height: 26px; background-color: #94a3b8; position: absolute; left: 0; transition: all 0.2s ease-in-out; border-radius: 2px; }
+        .switch-on { top: 0; background-color: #4ade80; }
+        .switch-off { bottom: 0; background-color: #64748b; }
+        
+        .btn { width: 44px; height: 44px; border-radius: 50%; background-color: #ef4444; border: 4px solid #7f1d1d; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .btn:active, .btn-pressed { transform: scale(0.9); background-color: #dc2626; box-shadow: inset 0 3px 5px rgba(0,0,0,0.5); }
+        
+        /* Discrete LEDs */
+        .led { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #064e3b; transition: all 0.1s; }
+        .led-on { background-color: #22c55e; box-shadow: 0 0 10px 2px #22c55e; border-color: #86efac; }
+        .led-off { background-color: #064e3b; box-shadow: none; }
+        .led-changed { box-shadow: 0 0 15px 4px #fbbf24; border-color: #fcd34d; }
+
+        /* RGB LEDs */
+        .rgb-led { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #334155; transition: all 0.1s; background-color: #1e293b; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
+        
+        .panel { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; }
+
+        /* Diagram Animations & Styles */
+        .diag-wire { fill: none; stroke-width: 2; transition: all 0.2s ease; }
+        .wire-idle { stroke: #334155; }
+        .wire-blue { stroke: #3b82f6 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #3b82f6); }
+        .wire-orange { stroke: #f97316 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #f97316); }
+        .wire-yellow { stroke: #fbbf24 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #fbbf24); }
+        .wire-green { stroke: #4ade80 !important; stroke-width: 3; filter: drop-shadow(0 0 4px #4ade80); }
+        .wire-purple { stroke: #c084fc !important; stroke-width: 3; filter: drop-shadow(0 0 4px #c084fc); }
+        .wire-cyan { stroke: #22d3ee !important; stroke-width: 3; filter: drop-shadow(0 0 4px #22d3ee); }
+
+        .box-idle { fill: #1e293b; stroke: #475569; transition: all 0.2s ease; }
+        .fill-blue { fill: #1e3a8a !important; stroke: #3b82f6 !important; filter: drop-shadow(0 0 4px #3b82f6); }
+        .fill-orange { fill: #7c2d12 !important; stroke: #f97316 !important; filter: drop-shadow(0 0 4px #f97316); }
+        .fill-yellow { fill: #713f12 !important; stroke: #fbbf24 !important; filter: drop-shadow(0 0 4px #fbbf24); }
+
+        .ff-box { fill: #0f172a; stroke: #475569; stroke-width: 2; transition: all 0.2s; }
+        .ff-box.loaded { fill: #1e3a8a; stroke: #3b82f6; }
+        .ff-box.held { fill: #7c2d12; stroke: #f97316; }
+        .ff-box.shifted { fill: #713f12; stroke: #fbbf24; }
+        
+        .ff-text { fill: #94a3b8; font-family: monospace; font-size: 10px; user-select: none; }
+        .ff-val { fill: #4ade80; font-family: monospace; font-size: 16px; font-weight: bold; user-select: none; transition: fill 0.2s; }
+        .ff-val.changed { fill: #fbbf24; }
+        
+        /* Tab Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        .tab-btn:hover:not(.active) { color: #e2e8f0; }
+
+        /* Legend overlay box */
+        .legend-box { background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; border-radius: 6px; padding: 8px; z-index: 10; }
+    </style>
+</head>
+<body class="flex flex-col items-center p-6 min-h-screen">
+    <div class="max-w-7xl w-full">
+        <!-- Header -->
+        <header class="mb-4 flex justify-between items-end border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 mb-1">16-bit PISO Circular Shift Register</h1>
+                <p class="text-slate-400 text-sm">Clear Architecture View: Explicit 3-way input paths, 16 individual FFs, and reliable button latching.</p>
+            </div>
+            <div class="flex flex-col gap-2 items-end">
+                <a href="../index.html?project=Project_7" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold transition-colors shadow-lg border border-slate-500 text-sm whitespace-nowrap text-center flex items-center justify-center h-[40px] mb-2">
+                    &#8592; Back to Simulations
+                </a>
+                <div class="flex gap-2"></div>
+                <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg">Pause</button>
+                <button onclick="singleStep()" id="step-btn" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors opacity-50 cursor-not-allowed shadow-lg" disabled>Step Edge</button>
+                <button onclick="resetReg()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors shadow-lg">Reset</button>
+            </div>
+        </header>
+
+        <div class="flex flex-col gap-6 w-full pb-10">
+            
+            <!-- Diagram Panel (Full Width) -->
+            <div class="panel p-4 flex flex-col items-center shadow-xl relative w-full">
+                <!-- Speed & Status Bar -->
+                <div class="w-full flex justify-between items-center mb-2 px-2">
+                    <div class="flex items-center gap-3 bg-slate-900 p-2 rounded border border-slate-700">
+                        <label class="text-xs font-bold text-slate-400">CLK DIV SPEED:</label>
+                        <input type="range" id="speed-slider" min="50" max="2000" value="800" class="w-24 accent-blue-500" oninput="updateSpeed()">
+                        <div class="w-3 h-3 rounded-full bg-slate-600" id="clk-indicator"></div>
+                    </div>
+                    
+                    <div class="bg-slate-900 p-2 px-4 rounded border border-slate-700 flex gap-4">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">Reg Value</span>
+                            <span id="hex-display" class="font-mono font-bold text-base text-green-400">16'h0000</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase">Last Clock Edge Action</span>
+                            <span id="action-display" class="font-mono font-bold text-base text-slate-500">IDLE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic SVG Architecture Diagram -->
+                <div class="w-full overflow-hidden bg-[#0a0f1c] border border-slate-700 rounded shadow-inner relative" style="height: 550px;">
+                    
+                    <!-- Floating Legend -->
+                    <div class="absolute top-4 left-4 legend-box shadow-lg">
+                        <div class="flex flex-col gap-2 text-xs font-mono text-slate-300">
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-sm"></div> LOAD (SW) Data</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-orange-500 rounded-sm"></div> HOLD Data</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded-sm"></div> ROTATE Data</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-green-400 rounded-sm"></div> Clock Line</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-purple-400 rounded-sm"></div> BTN1 Control</div>
+                            <div class="flex items-center gap-2"><div class="w-4 h-4 bg-cyan-400 rounded-sm"></div> BTN0 Control</div>
+                        </div>
+                    </div>
+
+                    <svg viewBox="0 0 1100 550" class="w-full h-full" id="arch-svg" preserveAspectRatio="xMidYMid meet">
+                        <!-- SVG Content populated by JS for precision -->
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Physical Blackboard Panel (Full Width) -->
+            <div class="panel p-6 shadow-xl relative bg-[#18212f] w-full">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest absolute top-2 left-4">Physical Blackboard Mapping</h3>
+                
+                <div class="mt-4 flex flex-col items-center gap-8">
+                    
+                    <!-- LEDs Row -->
+                    <div class="w-full flex justify-center items-end px-4 border-b border-slate-700/50 pb-6 gap-12">
+                        <!-- RGB B -->
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="rgb-led" id="rgb-led-b"></div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-bold text-purple-400 block">RGB B</span>
+                                <span class="text-[9px] text-slate-500 font-mono">[15:13]</span>
+                            </div>
+                        </div>
+                        
+                        <!-- RGB A -->
+                        <div class="flex flex-col items-center gap-2 mr-6">
+                            <div class="rgb-led" id="rgb-led-a"></div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-bold text-purple-400 block">RGB A</span>
+                                <span class="text-[9px] text-slate-500 font-mono">[12:10]</span>
+                            </div>
+                        </div>
+
+                        <!-- Discrete LEDs 9 to 0 -->
+                        <div class="flex gap-4">
+                            <script>
+                                for(let i=9; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-1.5">
+                                            <div class="led led-off" id="phys-led-${i}"></div>
+                                            <span class="text-[9px] font-bold font-mono text-cyan-400">LD${i}</span>
+                                            <span class="text-[8px] text-slate-500 font-mono">[${i}]</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Row -->
+                    <div class="w-full flex justify-center gap-24 px-8">
+                        <!-- Buttons -->
+                        <div class="flex gap-12">
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn1" onmousedown="pressBtn(1)" onmouseup="releaseBtn(1)" onmouseleave="releaseBtn(1)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-purple-400">BTN1</span>
+                                    <span class="text-[10px] text-slate-400">Load [15:8]</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <div class="btn" id="btn0" onmousedown="pressBtn(0)" onmouseup="releaseBtn(0)" onmouseleave="releaseBtn(0)"></div>
+                                <div class="text-center">
+                                    <span class="text-xs font-bold block text-cyan-400">BTN0</span>
+                                    <span class="text-[10px] text-slate-400">Load [7:0]</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Switches -->
+                        <div class="flex gap-4">
+                            <script>
+                                for(let i=7; i>=0; i--) {
+                                    document.write(`
+                                        <div class="flex flex-col items-center gap-2 mx-1">
+                                            <div class="switch-track" onclick="toggleSwitch(${i})">
+                                                <div class="switch-thumb switch-off" id="sw-${i}"></div>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono font-bold">SW${i}</span>
+                                        </div>
+                                    `);
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Tabs: Code & Explanations (Full Width at Bottom) -->
+            <div class="panel flex flex-col w-full shadow-xl">
+                <!-- Tab Headers -->
+                <div class="flex border-b border-slate-700 bg-slate-900 rounded-t-xl px-2 pt-2">
+                    <button class="tab-btn active px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-operation')">Operation Documentation</button>
+                    <button class="tab-btn px-6 py-3 text-sm font-bold tracking-wide" onclick="switchTab('tab-code')">Verilog Code</button>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="p-6">
+                    
+                    <!-- Operation Tab -->
+                    <div id="tab-operation" class="tab-content active text-sm text-slate-300">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-xl font-bold text-white mb-4">Synchronous Operation</h3>
+                            <p class="mb-6 text-base">Buttons <strong>BTN0</strong> and <strong>BTN1</strong> act as <em>clock enables</em> for their respective bytes. Data operations resolve precisely on the <strong>rising edge</strong> of the slow clock.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-yellow-400 block mb-2 text-lg">[00] Rotate</strong>
+                                    <span class="text-sm">All 16 bits shift left. Bit 15 wraps seamlessly to Bit 0.</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-cyan-400 block mb-2 text-lg">[01] Load Lower</strong>
+                                    <span class="text-sm">BTN0 asserted. <code>sw[7:0]</code> loads into <code>[7:0]</code>. Upper byte <strong>holds</strong> its value.</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-purple-400 block mb-2 text-lg">[10] Load Upper</strong>
+                                    <span class="text-sm">BTN1 asserted. <code>sw[7:0]</code> loads into <code>[15:8]</code>. Lower byte <strong>holds</strong> its value.</span>
+                                </div>
+                                
+                                <div class="bg-slate-900 p-4 rounded border border-slate-700">
+                                    <strong class="text-blue-400 block mb-2 text-lg">[11] Parallel Load</strong>
+                                    <span class="text-sm">Both asserted. Both bytes simultaneously load <code>sw[7:0]</code>.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Tab -->
+                    <div id="tab-code" class="tab-content">
+                        <div class="max-w-4xl mx-auto">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase mb-3">Req 5 Verilog Implementation</h3>
+                            <pre class="text-sm font-mono text-green-400 leading-relaxed bg-slate-900 p-6 rounded border border-slate-700 overflow-x-auto">
+<span class="text-slate-500">// 1. Clock Divider</span>
+<span class="text-blue-400">reg</span> [25:0] cntr;
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> clk) cntr <= cntr + 1;
+<span class="text-blue-400">wire</span> slow_clk = cntr[25];
+
+<span class="text-slate-500">// 2. Synchronous Register Logic</span>
+<span class="text-blue-400">reg</span> [15:0] shift_reg;
+<span class="text-blue-400">always</span> @(<span class="text-blue-400">posedge</span> slow_clk) <span class="text-blue-400">begin</span>
+    <span class="text-blue-400">if</span> (btn[1] && btn[0]) 
+        shift_reg <= {sw, sw};
+    <span class="text-blue-400">else if</span> (btn[1]) 
+        <span class="text-slate-500">// Hold lower byte</span>
+        shift_reg <= {sw, shift_reg[7:0]};
+    <span class="text-blue-400">else if</span> (btn[0]) 
+        <span class="text-slate-500">// Hold upper byte</span>
+        shift_reg <= {shift_reg[15:8], sw};
+    <span class="text-blue-400">else</span> 
+        <span class="text-slate-500">// Rotate left</span>
+        shift_reg <= {shift_reg[14:0], shift_reg[15]};
+<span class="text-blue-400">end</span>
+
+<span class="text-slate-500">// 3. Physical Output Mapping</span>
+<span class="text-blue-400">assign</span> led = shift_reg[9:0];
+<span class="text-slate-500">// RGB LED B {Blue, Green, Red}</span>
+<span class="text-blue-400">assign</span> rgb_b = shift_reg[15:13]; 
+<span class="text-slate-500">// RGB LED A {Blue, Green, Red}</span>
+<span class="text-blue-400">assign</span> rgb_a = shift_reg[12:10];
+                            </pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Data State
+        let regVal = 0x0001;
+        let swVal = 0x00;
+        
+        // Physical Button State vs Latched State
+        let btn = [false, false]; 
+        let btnLatched = [false, false]; 
+        
+        // Sim State
+        let isPaused = false;
+        let speedMs = 800;
+        let clockInterval;
+        let clkState = 0; 
+
+        function initSVG() {
+            const svg = document.getElementById('arch-svg');
+            let content = '';
+
+            // --- UPPER BYTE LOGIC ---
+            content += '<rect x="150" y="100" width="300" height="50" rx="4" class="box-idle" stroke-dasharray="4"/>';
+            content += '<text x="300" y="115" text-anchor="middle" class="ff-text font-bold" fill="#fff">UPPER BYTE INPUT LOGIC [15:8]</text>';
+            // 3-way input boxes
+            content += '<rect id="up-box-hold" x="170" y="125" width="60" height="25" class="box-idle"/> <text x="200" y="142" text-anchor="middle" class="ff-text">HOLD</text>';
+            content += '<rect id="up-box-load" x="270" y="125" width="60" height="25" class="box-idle"/> <text x="300" y="142" text-anchor="middle" class="ff-text">LOAD</text>';
+            content += '<rect id="up-box-rot" x="370" y="125" width="60" height="25" class="box-idle"/> <text x="400" y="142" text-anchor="middle" class="ff-text">ROTATE</text>';
+
+            // --- LOWER BYTE LOGIC ---
+            content += '<rect x="650" y="100" width="300" height="50" rx="4" class="box-idle" stroke-dasharray="4"/>';
+            content += '<text x="800" y="115" text-anchor="middle" class="ff-text font-bold" fill="#fff">LOWER BYTE INPUT LOGIC [7:0]</text>';
+            // 3-way input boxes
+            content += '<rect id="low-box-hold" x="670" y="125" width="60" height="25" class="box-idle"/> <text x="700" y="142" text-anchor="middle" class="ff-text">HOLD</text>';
+            content += '<rect id="low-box-load" x="770" y="125" width="60" height="25" class="box-idle"/> <text x="800" y="142" text-anchor="middle" class="ff-text">LOAD</text>';
+            content += '<rect id="low-box-rot" x="870" y="125" width="60" height="25" class="box-idle"/> <text x="900" y="142" text-anchor="middle" class="ff-text">ROTATE</text>';
+
+            // --- Flip-Flops & Outputs ---
+            for(let i=15; i>=0; i--) {
+                let isUpper = i >= 8;
+                let x = isUpper ? 150 + (15-i)*37 : 650 + (7-i)*37;
+                let y = 240;
+
+                content += `<rect id="diag-box-${i}" x="${x}" y="${y}" width="30" height="55" class="ff-box" rx="3" />`;
+                content += `<text x="${x+15}" y="${y+16}" text-anchor="middle" class="ff-text">Bit</text>`;
+                content += `<text x="${x+15}" y="${y+28}" text-anchor="middle" class="ff-text font-bold" fill="#e2e8f0">${i}</text>`;
+                content += `<text id="diag-val-${i}" x="${x+15}" y="${y+46}" text-anchor="middle" class="ff-val">0</text>`;
+
+                // Feed path from logic block
+                content += `<path id="path-logic-ff-${i}" d="M ${x+15} 205 L ${x+15} 240" class="diag-wire wire-idle" stroke-dasharray="2"/>`;
+
+                // Output path
+                content += `<path id="diag-out-path-${i}" d="M ${x+15} 295 L ${x+15} 330" class="diag-wire wire-idle"/>`;
+            }
+
+            // Dist buses out of Logic Blocks
+            content += `<path id="up-dist-main" d="M 300 150 L 300 205" class="diag-wire wire-idle"/>`;
+            content += `<path id="up-dist-bus" d="M 165 205 L 424 205" class="diag-wire wire-idle"/>`;
+            
+            content += `<path id="low-dist-main" d="M 800 150 L 800 205" class="diag-wire wire-idle"/>`;
+            content += `<path id="low-dist-bus" d="M 665 205 L 924 205" class="diag-wire wire-idle"/>`;
+
+            // --- HOLD Paths (Orange) ---
+            let holdUpPath = "M 165 330 L 424 330 M 300 330 L 300 370 L 100 370 L 100 60 L 200 60 L 200 120";
+            content += `<path id="wire-hold-up" d="${holdUpPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-hold-up" points="195,115 205,115 200,125" class="box-idle"/>`;
+
+            let holdLowPath = "M 665 330 L 924 330 M 800 330 L 800 370 L 1040 370 L 1040 60 L 700 60 L 700 120";
+            content += `<path id="wire-hold-low" d="${holdLowPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-hold-low" points="695,115 705,115 700,125" class="box-idle"/>`;
+
+            // --- ROTATE Paths (Yellow) ---
+            let rotUpPath = "M 665 330 L 665 350 L 490 350 L 490 80 L 400 80 L 400 120";
+            content += `<path id="wire-rot-up" d="${rotUpPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-rot-up" points="395,115 405,115 400,125" class="box-idle"/>`;
+
+            let rotLowPath = "M 165 330 L 165 390 L 60 390 L 60 30 L 1080 30 L 1080 80 L 900 80 L 900 120";
+            content += `<path id="wire-rot-low" d="${rotLowPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-rot-low" points="895,115 905,115 900,125" class="box-idle"/>`;
+
+            // --- LOAD (SW) Paths (Blue) ---
+            content += `<rect x="510" y="10" width="80" height="25" class="box-idle"/>`;
+            content += `<text x="550" y="27" text-anchor="middle" class="ff-text font-bold">SW[7:0]</text>`;
+            content += `<path id="wire-sw-bus" d="M 550 35 L 550 50" class="diag-wire wire-idle"/>`;
+            
+            let swUpPath = "M 550 50 L 300 50 L 300 120";
+            content += `<path id="wire-sw-up" d="${swUpPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-sw-up" points="295,115 305,115 300,125" class="box-idle"/>`;
+
+            let swLowPath = "M 550 50 L 800 50 L 800 120";
+            content += `<path id="wire-sw-low" d="${swLowPath}" class="diag-wire wire-idle"/>`;
+            content += `<polygon id="arr-sw-low" points="795,115 805,115 800,125" class="box-idle"/>`;
+
+            // --- Clock Path (Green) ---
+            content += `<path id="wire-clk-bus" d="M 120 440 L 980 440" class="diag-wire wire-idle"/>`;
+            for(let i=15; i>=0; i--) {
+                let x = (i >= 8) ? 150 + (15-i)*37 : 650 + (7-i)*37;
+                content += `<path id="wire-clk-tap-${i}" d="M ${x+15} 440 L ${x+15} 295" class="diag-wire wire-idle"/>`;
+                content += `<polygon points="${x+10},295 ${x+20},295 ${x+15},290" fill="#475569"/>`;
+            }
+            content += `<rect x="480" y="430" width="140" height="20" class="box-idle"/>`;
+            content += `<text x="550" y="443" text-anchor="middle" class="ff-text">DIVIDED CLOCK cntr[25]</text>`;
+
+            // --- Controls (Purple/Cyan) ---
+            content += `<text x="270" y="88" text-anchor="end" class="ff-text font-bold" fill="#c084fc">BTN1 Select</text>`;
+            content += `<path id="wire-btn1" d="M 280 85 L 300 95" class="diag-wire wire-idle"/>`;
+
+            content += `<text x="830" y="88" text-anchor="start" class="ff-text font-bold" fill="#22d3ee">BTN0 Select</text>`;
+            content += `<path id="wire-btn0" d="M 820 85 L 800 95" class="diag-wire wire-idle"/>`;
+
+            svg.innerHTML = content;
+        }
+
+        // Apply visual classes for routing
+        function activate(id, colorCls) {
+            let el = document.getElementById(id);
+            if(el) {
+                el.classList.remove('wire-idle', 'box-idle', 'wire-blue', 'wire-orange', 'wire-yellow', 'wire-green', 'fill-blue', 'fill-orange', 'fill-yellow');
+                el.classList.add(colorCls);
+            }
+        }
+        function activateArr(arr, colorCls) { arr.forEach(id => activate(id, colorCls)); }
+
+        function resetPaths() {
+            const allPaths = [
+                'wire-sw-bus', 'wire-sw-up', 'wire-sw-low', 'arr-sw-up', 'arr-sw-low',
+                'wire-hold-up', 'wire-hold-low', 'arr-hold-up', 'arr-hold-low',
+                'wire-rot-up', 'wire-rot-low', 'arr-rot-up', 'arr-rot-low',
+                'up-dist-main', 'up-dist-bus', 'low-dist-main', 'low-dist-bus',
+                'up-box-load', 'up-box-hold', 'up-box-rot',
+                'low-box-load', 'low-box-hold', 'low-box-rot'
+            ];
+            for(let i=15; i>=0; i--) allPaths.push(`path-logic-ff-${i}`);
+            activateArr(allPaths, 'wire-idle');
+            activateArr(['up-box-load', 'up-box-hold', 'up-box-rot', 'low-box-load', 'low-box-hold', 'low-box-rot'], 'box-idle');
+        }
+
+        function updateUI(oldVal, action, b1, b0) {
+            // Hex Update
+            document.getElementById('hex-display').innerText = `16'h${regVal.toString(16).toUpperCase().padStart(4, '0')}`;
+            
+            let actionEl = document.getElementById('action-display');
+            actionEl.innerText = action;
+            if(action === 'IDLE') actionEl.className = "font-mono font-bold text-base text-slate-500";
+            else if(action === 'SHIFT/ROTATE') actionEl.className = "font-mono font-bold text-base text-yellow-400";
+            else actionEl.className = "font-mono font-bold text-base text-blue-400";
+
+            // Update FF Values & Physical LEDs
+            for(let i=0; i<16; i++) {
+                let bitVal = (regVal >> i) & 1;
+                let oldBitVal = (oldVal >> i) & 1;
+                let changed = (bitVal !== oldBitVal && action !== 'IDLE');
+
+                let valEl = document.getElementById(`diag-val-${i}`);
+                if(valEl) {
+                    valEl.textContent = bitVal;
+                    if(changed) {
+                        valEl.classList.add('changed');
+                        setTimeout(() => valEl.classList.remove('changed'), Math.min(speedMs - 50, 400));
+                    }
+                }
+
+                let boxEl = document.getElementById(`diag-box-${i}`);
+                if(boxEl) {
+                    boxEl.setAttribute('class', 'ff-box'); // reset
+                    if(action !== 'IDLE') {
+                        let isUpper = i >= 8;
+                        if (isUpper && b1) boxEl.setAttribute('class', 'ff-box loaded');
+                        else if (!isUpper && b0) boxEl.setAttribute('class', 'ff-box loaded');
+                        else if (isUpper && !b1 && b0) boxEl.setAttribute('class', 'ff-box held');
+                        else if (!isUpper && !b0 && b1) boxEl.setAttribute('class', 'ff-box held');
+                        else boxEl.setAttribute('class', 'ff-box shifted');
+
+                        setTimeout(() => boxEl.setAttribute('class', 'ff-box'), Math.min(speedMs - 50, 400));
+                    }
+                }
+
+                if(bitVal) activate(`diag-out-path-${i}`, 'wire-green');
+                else activate(`diag-out-path-${i}`, 'wire-idle');
+
+                if (i <= 9) {
+                    let ledEl = document.getElementById(`phys-led-${i}`);
+                    if (ledEl) {
+                        if(bitVal) {
+                            ledEl.classList.remove('led-off');
+                            ledEl.classList.add('led-on');
+                        } else {
+                            ledEl.classList.remove('led-on');
+                            ledEl.classList.add('led-off');
+                        }
+                        if(changed) {
+                            ledEl.classList.add('led-changed');
+                            setTimeout(() => ledEl.classList.remove('led-changed'), Math.min(speedMs - 50, 400));
+                        }
+                    }
+                }
+            }
+
+            // RGBs
+            let rB = (regVal >> 13) & 1 ? 255 : 30;
+            let gB = (regVal >> 14) & 1 ? 255 : 30;
+            let bB = (regVal >> 15) & 1 ? 255 : 40; 
+            document.getElementById('rgb-led-b').style.backgroundColor = `rgb(${rB}, ${gB}, ${bB})`;
+            if(rB>50 || gB>50 || bB>50) document.getElementById('rgb-led-b').style.boxShadow = `0 0 15px 5px rgba(${rB},${gB},${bB},0.6)`;
+            else document.getElementById('rgb-led-b').style.boxShadow = `inset 0 0 5px rgba(0,0,0,0.5)`;
+
+            let rA = (regVal >> 10) & 1 ? 255 : 30;
+            let gA = (regVal >> 11) & 1 ? 255 : 30;
+            let bA = (regVal >> 12) & 1 ? 255 : 40;
+            document.getElementById('rgb-led-a').style.backgroundColor = `rgb(${rA}, ${gA}, ${bA})`;
+            if(rA>50 || gA>50 || bA>50) document.getElementById('rgb-led-a').style.boxShadow = `0 0 15px 5px rgba(${rA},${gA},${bA},0.6)`;
+            else document.getElementById('rgb-led-a').style.boxShadow = `inset 0 0 5px rgba(0,0,0,0.5)`;
+
+            // Diagram Path Animations
+            resetPaths();
+            let animDuration = Math.min(speedMs - 50, 400);
+
+            // Clock pulse
+            activate("wire-clk-bus", "wire-green");
+            for(let i=0; i<=15; i++) activate(`wire-clk-tap-${i}`, "wire-green");
+            setTimeout(() => { 
+                activate("wire-clk-bus", "wire-idle");
+                for(let i=0; i<=15; i++) activate(`wire-clk-tap-${i}`, "wire-idle");
+            }, 150);
+
+            if(action !== 'IDLE') {
+                let upDistPaths = ['up-dist-main', 'up-dist-bus'];
+                for(let i=8; i<=15; i++) upDistPaths.push(`path-logic-ff-${i}`);
+                
+                let lowDistPaths = ['low-dist-main', 'low-dist-bus'];
+                for(let i=0; i<=7; i++) lowDistPaths.push(`path-logic-ff-${i}`);
+
+                if (b1 && b0) {
+                    activateArr(['wire-sw-bus', 'wire-sw-up', 'wire-sw-low', 'arr-sw-up', 'arr-sw-low'], 'wire-blue');
+                    activateArr(['up-box-load', 'low-box-load'], 'fill-blue');
+                    activateArr([...upDistPaths, ...lowDistPaths], 'wire-blue');
+                } else if (b1) {
+                    activateArr(['wire-sw-bus', 'wire-sw-up', 'arr-sw-up'], 'wire-blue');
+                    activate('up-box-load', 'fill-blue');
+                    activateArr(upDistPaths, 'wire-blue');
+
+                    activateArr(['wire-hold-low', 'arr-hold-low'], 'wire-orange');
+                    activate('low-box-hold', 'fill-orange');
+                    activateArr(lowDistPaths, 'wire-orange');
+                } else if (b0) {
+                    activateArr(['wire-hold-up', 'arr-hold-up'], 'wire-orange');
+                    activate('up-box-hold', 'fill-orange');
+                    activateArr(upDistPaths, 'wire-orange');
+
+                    activateArr(['wire-sw-bus', 'wire-sw-low', 'arr-sw-low'], 'wire-blue');
+                    activate('low-box-load', 'fill-blue');
+                    activateArr(lowDistPaths, 'wire-blue');
+                } else {
+                    activateArr(['wire-rot-up', 'wire-rot-low', 'arr-rot-up', 'arr-rot-low'], 'wire-yellow');
+                    activateArr(['up-box-rot', 'low-box-rot'], 'fill-yellow');
+                    activateArr([...upDistPaths, ...lowDistPaths], 'wire-yellow');
+                }
+
+                // Control lines pulse
+                if (b1) {
+                    activate('wire-btn1', 'wire-purple');
+                    setTimeout(() => activate('wire-btn1', 'wire-idle'), animDuration);
+                }
+                if (b0) {
+                    activate('wire-btn0', 'wire-cyan');
+                    setTimeout(() => activate('wire-btn0', 'wire-idle'), animDuration);
+                }
+
+                setTimeout(resetPaths, animDuration);
+            }
+        }
+
+        // --- Interaction Logic ---
+        function toggleSwitch(idx) {
+            let mask = 1 << idx;
+            swVal ^= mask;
+            let swEl = document.getElementById(`sw-${idx}`);
+            if((swVal >> idx) & 1) {
+                swEl.classList.remove('switch-off');
+                swEl.classList.add('switch-on');
+            } else {
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+            }
+        }
+
+        function pressBtn(idx) {
+            btn[idx] = true;
+            btnLatched[idx] = true; // Latch for next slow clock edge
+            document.getElementById(`btn${idx}`).classList.add('btn-pressed');
+        }
+
+        function releaseBtn(idx) {
+            btn[idx] = false;
+        }
+
+        // --- Core Simulation Logic ---
+        function clockTick() {
+            clkState = 1 - clkState;
+            document.getElementById('clk-indicator').style.backgroundColor = clkState ? '#4ade80' : '#475569';
+            document.getElementById('clk-indicator').style.boxShadow = clkState ? '0 0 8px #4ade80' : 'none';
+
+            let oldVal = regVal;
+            let action = "SHIFT/ROTATE";
+            let nextVal = 0;
+
+            let b1 = btn[1] || btnLatched[1];
+            let b0 = btn[0] || btnLatched[0];
+            
+            btnLatched = [false, false];
+            
+            if(!btn[1]) document.getElementById(`btn1`).classList.remove('btn-pressed');
+            if(!btn[0]) document.getElementById(`btn0`).classList.remove('btn-pressed');
+
+            if (b1 && b0) {
+                nextVal = (swVal << 8) | swVal;
+                action = "PARALLEL LOAD [15:0]";
+            } else if (b1) {
+                nextVal = (swVal << 8) | (oldVal & 0x00FF);
+                action = "LOAD UPPER, HOLD LOWER";
+            } else if (b0) {
+                nextVal = (oldVal & 0xFF00) | swVal;
+                action = "HOLD UPPER, LOAD LOWER";
+            } else {
+                let msb = (oldVal >> 15) & 1;
+                nextVal = ((oldVal << 1) & 0xFFFF) | msb;
+                action = "SHIFT/ROTATE";
+            }
+            
+            regVal = nextVal;
+            updateUI(oldVal, action, b1, b0);
+        }
+
+        function startClock() {
+            if(clockInterval) clearInterval(clockInterval);
+            clockInterval = setInterval(clockTick, speedMs);
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            let b = document.getElementById('pause-btn');
+            let stepBtn = document.getElementById('step-btn');
+            
+            if(isPaused) {
+                clearInterval(clockInterval);
+                b.innerText = "Resume";
+                b.className = "px-4 py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition-colors shadow-lg";
+                stepBtn.disabled = false;
+                stepBtn.className = "px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors cursor-pointer shadow-lg";
+            } else {
+                startClock();
+                b.innerText = "Pause";
+                b.className = "px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-bold transition-colors shadow-lg";
+                stepBtn.disabled = true;
+                stepBtn.className = "px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded font-bold transition-colors opacity-50 cursor-not-allowed shadow-lg";
+            }
+        }
+
+        function singleStep() {
+            if(isPaused) clockTick();
+        }
+
+        function resetReg() {
+            let oldVal = regVal;
+            regVal = 0x0000;
+            swVal = 0x00;
+            for(let i=0; i<=7; i++) {
+                let swEl = document.getElementById(`sw-${i}`);
+                swEl.classList.remove('switch-on');
+                swEl.classList.add('switch-off');
+            }
+            btn = [false, false];
+            btnLatched = [false, false];
+            document.getElementById(`btn1`).classList.remove('btn-pressed');
+            document.getElementById(`btn0`).classList.remove('btn-pressed');
+
+            updateUI(oldVal, "IDLE", false, false);
+        }
+
+        function updateSpeed() {
+            let sliderVal = document.getElementById('speed-slider').value;
+            speedMs = parseInt(sliderVal);
+            if(!isPaused) startClock();
+        }
+
+        window.onload = () => {
+            initSVG();
+            updateUI(0x0000, "IDLE", false, false);
+            startClock();
+        };
+    </script>
+</body>
+</html>
