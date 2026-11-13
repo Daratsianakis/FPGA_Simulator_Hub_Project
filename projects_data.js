@@ -1,4 +1,10 @@
 const projectData = {
+    "Project_10": [
+        "Challenge1_Display_MUX.html",
+        "Challenge2_Decimal_BCD.html",
+        "Req1_8_Bit_ALU.html",
+        "Req2_Status_Outputs.html"
+    ],
     "Project_7": [
         "Req4_PIPO_MUX.html",
         "Req5_PISO_Circular_Shift.html",
